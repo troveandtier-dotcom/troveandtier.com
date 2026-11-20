@@ -31,7 +31,8 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   <footer><span>TROVE &amp; TIER</span><span>Thoughtful finds. Better living.</span></footer>
 </main>
 <script>
-import { supabase, supabaseConfigured } from '../../lib/supabase';
+import { supabase } from '../../lib/supabase';
+const client = supabase!;
 const configNotice=document.querySelector('#configNotice');
 const loginPanel=document.querySelector('#loginPanel');
 const workspace=document.querySelector('#workspace');
@@ -43,14 +44,14 @@ const message=(el,text)=>{if(el)el.textContent=text};
 const lines=(id)=>document.querySelector('#'+id)?.value.split('\n').map(x=>x.trim()).filter(Boolean)||[];
 async function checkAccess(){
  if(!supabase){show(configNotice,true);show(loginPanel,false);show(workspace,false);return}
- const {data:{session}}=await supabase.auth.getSession();
+ const {data:{session}}=await client.auth.getSession();
  if(!session){show(loginPanel,true);show(workspace,false);return}
- const {data:admin,error}=await supabase.from('admin_users').select('role').eq('user_id',session.user.id).maybeSingle();
- if(error||!admin){await supabase.auth.signOut();show(loginPanel,true);show(workspace,false);message(loginMessage,'This account is not on the approved editorial access list.');return}
+ const {data:admin,error}=await client.from('admin_users').select('role').eq('user_id',session.user.id).maybeSingle();
+ if(error||!admin){await client.auth.signOut();show(loginPanel,true);show(workspace,false);message(loginMessage,'This account is not on the approved editorial access list.');return}
  show(loginPanel,false);show(workspace,true);await loadProducts();
 }
 async function loadProducts(){
- const {data,error}=await supabase.from('products').select('id,name,slug,status,evidence_type,updated_at').order('updated_at',{ascending:false}).limit(50);
+ const {data,error}=await client.from('products').select('id,name,slug,status,evidence_type,updated_at').order('updated_at',{ascending:false}).limit(50);
  if(error){message(accessMessage,'Could not load product records: '+error.message);show(accessMessage,true);return}
  const list=document.querySelector('#productList'); if(!list)return;
  list.replaceChildren();
@@ -63,11 +64,11 @@ async function loadProducts(){
 document.querySelector('#loginForm')?.addEventListener('submit',async e=>{
  e.preventDefault();message(loginMessage,'Signing in…');
  const email=document.querySelector('#email').value;const password=document.querySelector('#password').value;
- const {error}=await supabase.auth.signInWithPassword({email,password});
+ const {error}=await client.auth.signInWithPassword({email,password});
  if(error){message(loginMessage,'Sign-in failed. Check your credentials or ask the owner to verify your access.');return}
  message(loginMessage,'');await checkAccess();
 });
-document.querySelector('#signOut')?.addEventListener('click',async()=>{await supabase.auth.signOut();await checkAccess()});
+document.querySelector('#signOut')?.addEventListener('click',async()=>{await client.auth.signOut();await checkAccess()});
 document.querySelector('#productName')?.addEventListener('input',e=>{
  const slug=document.querySelector('#productSlug');if(!slug.dataset.edited){slug.value=e.target.value.toLowerCase().normalize('NFKD').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')}
 });
@@ -75,11 +76,11 @@ document.querySelector('#productSlug')?.addEventListener('input',e=>{e.target.da
 document.querySelector('#productForm')?.addEventListener('submit',async e=>{
  e.preventDefault();message(productMessage,'Saving draft…');
  const payload={name:document.querySelector('#productName').value.trim(),slug:document.querySelector('#productSlug').value.trim(),brand:document.querySelector('#productBrand').value.trim()||null,summary:document.querySelector('#productSummary').value.trim(),evidence_type:document.querySelector('#evidenceType').value,evidence_notes:document.querySelector('#evidenceNotes').value.trim(),pros:lines('productPros'),limitations:lines('productLimits'),status:'draft'};
- const {error}=await supabase.from('products').insert(payload);
+ const {error}=await client.from('products').insert(payload);
  if(error){message(productMessage,error.code==='23505'?'That URL slug already exists. Choose a different one.':'Could not save: '+error.message);return}
  e.target.reset();const slug=document.querySelector('#productSlug');delete slug.dataset.edited;message(productMessage,'Saved as draft. It is not public.');await loadProducts();
 });
-if(supabase){supabase.auth.onAuthStateChange(()=>{setTimeout(checkAccess,0)})}
+if(supabase){client.auth.onAuthStateChange(()=>{setTimeout(checkAccess,0)})}
 checkAccess();
 </script>
 <style>
