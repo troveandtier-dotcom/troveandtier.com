@@ -1,7 +1,7 @@
 ---
 const links = [
   ['Kitchen','/kitchen'],['Bathroom','/bathroom'],['Bedroom','/bedroom'],['Closet','/closet'],
-  ['Laundry','/laundry'],['Small spaces','/small-spaces'],['The Edit','/the-edit'],['Journal','/journal']
+  ['Laundry','/laundry'],['Small spaces','/small-spaces'],['The Edit','/the-edit'],['Journal','/journal'],['All rooms','/categories']
 ];
 ---
 <header class="site-header">
@@ -25,11 +25,22 @@ const links = [
     menu.setAttribute('aria-expanded', String(!open));
     if (mobile) mobile.hidden = open;
   });
+  mobile?.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && menu && mobile) {
+      mobile.hidden = true;
+      menu.setAttribute('aria-expanded', 'false');
+      menu.focus();
+    }
+  });
   const region = document.querySelector<HTMLSelectElement>('#region-select');
   if (region) {
-    const saved = localStorage.getItem('tt-region');
-    if (saved && ['US','UK','CA'].includes(saved)) region.value = saved;
-    region.addEventListener('change', () => localStorage.setItem('tt-region', region.value));
+    try {
+      const saved = localStorage.getItem('tt-region');
+      if (saved && ['US','UK','CA'].includes(saved)) region.value = saved;
+      region.addEventListener('change', () => {
+        try { localStorage.setItem('tt-region', region.value); } catch { /* storage may be unavailable */ }
+      });
+    } catch { /* storage may be unavailable */ }
   }
 </script>
 <style>
