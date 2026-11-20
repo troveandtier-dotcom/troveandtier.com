@@ -1,5 +1,5 @@
 interface Env {
-  ASSETS: Fetcher;
+  ASSETS: { fetch(request: Request): Promise<Response> };
   SUPABASE_URL: string;
   SUPABASE_ANON_KEY: string;
   SUPABASE_SERVICE_ROLE_KEY?: string;
@@ -30,7 +30,7 @@ function notFound() {
     status: 404, headers: { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-store' }
   });
 }
-async function redirectOffer(request: Request, env: Env, ctx: ExecutionContext, id: string) {
+async function redirectOffer(request: Request, env: Env, ctx: { waitUntil(promise: Promise<unknown>): void }, id: string) {
   if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id)) return notFound();
   if (!env.SUPABASE_URL || !env.SUPABASE_ANON_KEY) return notFound();
 
@@ -74,7 +74,7 @@ async function redirectOffer(request: Request, env: Env, ctx: ExecutionContext, 
   return Response.redirect(destination.toString(), 302);
 }
 export default {
-  async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
+  async fetch(request: Request, env: Env, ctx: { waitUntil(promise: Promise<unknown>): void }): Promise<Response> {
     const url = new URL(request.url);
     const match = url.pathname.match(/^\/go\/([^/]+)\/?$/);
     if (match && request.method === 'GET') return redirectOffer(request, env, ctx, match[1]);
