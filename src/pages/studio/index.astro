@@ -18,7 +18,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
         <label>Short description<textarea id="summary" required maxlength="500" rows="3" placeholder="What does it help with?"></textarea></label>
         <label>Product image URL<input id="image" type="url" placeholder="https://..."></label>
         <label>Image credit / source<input id="imageCredit" maxlength="240" placeholder="Who supplied the image?"></label>
-        <label class="check"><input id="imageRights" type="checkbox" required> I own this image or have permission/licence to use it.</label>
+        <label class="check"><input id="imageRights" type="checkbox"> I own this image or have permission/licence to use it.</label>
         <label>Why it may be useful (optional)<textarea id="pros" rows="2" placeholder="One point per line"></textarea></label>
         <label>Limitations / fit notes (optional)<textarea id="limits" rows="2" placeholder="Measurements, compatibility or caveats"></textarea></label>
         <h3>2. Retailer &amp; affiliate link</h3>
@@ -41,7 +41,7 @@ const db = supabase;
 const $ = (id) => document.getElementById(id);
 const show = (id, yes) => { $(id).hidden = !yes; };
 const say = (id, value) => { $(id).textContent = value; };
-const lines = (id) => $(id).value.split('\\n').map(x => x.trim()).filter(Boolean);
+const lines = (id) => $(id).value.split('\n').map(x => x.trim()).filter(Boolean);
 function https(value) { try { const u = new URL(value); return u.protocol === 'https:' && !u.username && !u.password ? u : null; } catch { return null; } }
 async function loadDesk() {
  const { data: cats, error } = await db.from('categories').select('id,name').eq('is_active',true).order('sort_order');
@@ -72,7 +72,7 @@ $('name').addEventListener('input',()=>{if(!$('slug')?.dataset.edited){}});
 $('productForm').addEventListener('submit',async e=>{
  e.preventDefault(); const button=$('publish'); button.disabled=true; button.textContent='Publishing…'; say('formMsg','Saving product and affiliate link…');
  const canonical=https($('canonical').value.trim()), affiliate=https($('affiliate').value.trim()), imageRaw=$('image').value.trim(), image=imageRaw?https(imageRaw):null;
- if(!canonical||!affiliate||(imageRaw&&!image)){say('formMsg','Use valid HTTPS links for the retailer, affiliate link and image.');button.disabled=false;button.textContent='Publish product';return;}
+ if(!canonical||!affiliate||(imageRaw&&!image)|| (imageRaw&&!$('imageRights').checked)){say('formMsg','Use valid HTTPS links for the retailer, affiliate link and image.');button.disabled=false;button.textContent='Publish product';return;}
  if(canonical.hostname!==new URL(canonical.href).hostname){say('formMsg','Please check the retailer product URL.');button.disabled=false;button.textContent='Publish product';return;}
  const market=$('market').value, retailerName=$('retailer').value.trim(), now=new Date().toISOString();
  try {
@@ -90,7 +90,7 @@ $('productForm').addEventListener('submit',async e=>{
    name,slug,brand:$('brand').value.trim()||null,category_id:$('category').value,
    summary:$('summary').value.trim(),description:$('summary').value.trim(),
    image_url:image?.toString()||null,image_credit:$('imageCredit').value.trim()||null,
-   image_rights_status:'licensed',evidence_type:'editorial_research',
+   image_rights_status:image?'licensed':'unverified',evidence_type:'editorial_research',
    evidence_notes:'Product listing supplied by the Trove & Tier editor.',
    pros:lines('pros'),limitations:lines('limits'),status:'published',published_at:now,last_verified_at:now
   }).select('id').single();
