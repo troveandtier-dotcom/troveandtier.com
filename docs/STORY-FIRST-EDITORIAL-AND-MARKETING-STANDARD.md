@@ -40,3 +40,54 @@ Before approval, ask:
 
 ## Brand expression
 Trove & Tier helps people make more of the home they already have, then choose additions thoughtfully. The feeling is considered, useful and quietly optimistic—not perfection, pressure or shopping for its own sake.
+
+
+## Ethical persuasion framework (approved 20 November 2026)
+
+Use the following principles as a flexible editorial method—not as a rigid sales script. The purpose is to help readers make informed decisions, not to pressure them.
+
+### Adopted principles
+
+1. **Pacing and leading:** begin with the reader's recognizable present situation, then guide them toward a practical, better-informed next step.
+2. **SPIN (adapted):** establish the situation, identify the practical problem, explain its real consequences without exaggeration, and show what a useful solution would need to achieve.
+3. **Feel, felt, found (adapted):** acknowledge a frustration without claiming fabricated personal experience or inventing customer stories; normalize the difficulty and offer a grounded insight.
+4. **NEPQ (selective):** use thoughtful, relevant questions to help readers clarify their needs, constraints and priorities. Questions must inform, not corner.
+5. **BANT (adapted for consumer content):** consider budget, actual need and timing when evaluating a purchase. Treat decision authority as relevant only where it genuinely matters (for example, shared household or rental decisions).
+6. **Trial close (soft editorial version):** use low-pressure decision prompts, comparison questions or checklists to help a reader decide whether an option fits. Never imply that a reader has already agreed to buy.
+
+### Limited-use techniques
+
+- **Sharp-angle close:** only as a factual response to a specific objection, with relevant evidence and no pressure.
+- **Accusation audit:** transparently address a reasonable concern a reader may have (for example, cost, space, durability or whether a purchase is necessary).
+- **Porcupine technique:** answer genuine buying questions directly and accurately; do not use questions to evade or manipulate.
+- **Pain funnel:** explore practical consequences proportionately. Never intensify fear, shame, embarrassment or anxiety to drive a purchase.
+
+### Techniques not adopted
+
+Do not use negative-reverse selling, steepling, microexpression-reading or fractionation as content or marketing tactics. These either rely on manipulative pressure, concern body-language interpretation rather than editorial communication, or are inappropriate for the brand's reader-first approach.
+
+### Format-specific application
+
+- **Pinterest:** earn attention with a specific, truthful situation or curiosity; deliver a clear takeaway and accurate destination.
+- **Facebook and Instagram:** recognize a familiar moment, offer one useful insight, then invite discussion or a visit to the relevant guide.
+- **Short video:** establish the problem quickly, demonstrate a useful idea, state a meaningful caveat, and end with a natural next step.
+- **Journal articles:** use the framework to organize the reader's decision journey, but prioritize explanation, evidence, practical steps, safety and trade-offs over persuasion.
+- **Affiliate recommendations:** explain why an item may fit, who it may not suit, what to verify, and whether rearranging or buying nothing is a better option.
+
+### Non-negotiable safeguards
+
+- Never fabricate testimonials, customer experiences, reviews, tests, endorsements, urgency, scarcity, product claims or outcomes.
+- Never amplify pain or manufacture insecurity to sell.
+- Never hide material limitations, costs, safety considerations or relevant alternatives.
+- Do not force every technique into every post. Choose only what improves clarity and usefulness.
+- A reader should leave better informed even if they do not click, subscribe or purchase.
+
+### Review checklist
+
+Before approving a post, caption, video or article, ask:
+- Does it meet the reader in a recognizable situation?
+- Does it clarify the actual problem rather than invent one?
+- Does it help the reader think through their needs and constraints?
+- Are recommendations supported by facts and accompanied by relevant trade-offs?
+- Is the next step natural and optional?
+- Would the content still be useful to someone who buys nothing?
