@@ -64,6 +64,16 @@ export function markdownToSafeHtml(markdown: string): string {
   return blocks.map(block => {
     const lines = block.split('\n').map(line => line.trim()).filter(Boolean);
     if (!lines.length) return '';
+    const isTable = lines.length >= 2 && lines.every(line => /^\|.*\|$/.test(line));
+    if (isTable) {
+      const cells = (line: string) => line.replace(/^\|/, '').replace(/\|$/, '').split('|').map(cell => cell.trim());
+      const rows = lines.filter(line => !/^\|?\s*:?-{3,}:?\s*(\|\s*:?-{3,}:?\s*)+\|?$/.test(line));
+      if (rows.length) {
+        const header = cells(rows[0]);
+        const body = rows.slice(1).map(row => '<tr>' + cells(row).map(cell => '<td>' + inline(cell) + '</td>').join('') + '</tr>').join('');
+        return '<div class="table-scroll"><table><thead><tr>' + header.map(cell => '<th scope="col">' + inline(cell) + '</th>').join('') + '</tr></thead><tbody>' + body + '</tbody></table></div>';
+      }
+    }
     if (lines.every(line => /^[-*]\s+/.test(line))) return '<ul>' + lines.map(line => '<li>' + inline(line.replace(/^[-*]\s+/, '')) + '</li>').join('') + '</ul>';
     if (lines.every(line => /^\d+\.\s+/.test(line))) return '<ol>' + lines.map(line => '<li>' + inline(line.replace(/^\d+\.\s+/, '')) + '</li>').join('') + '</ol>';
     if (lines.length === 1 && /^#{1,3}\s+/.test(lines[0])) {
