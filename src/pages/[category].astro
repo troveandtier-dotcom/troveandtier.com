@@ -8,7 +8,8 @@ export function getStaticPaths() {
 }
 const { category } = Astro.props;
 const publishedArticles = await getPublishedArticles();
-const related = publishedArticles.length ? publishedArticles.filter(article => article.category?.slug === category.slug).map(article => ({...article, category: article.category?.name || category.title, read: 'Editorial'})) : articles.filter(article => article.category === category.title);
+const combinedArticles = [...publishedArticles.map(article => ({...article, category: article.category?.name || category.title, read: 'Editorial'})), ...articles.filter(item => !publishedArticles.some(article => article.slug === item.slug))];
+const related = combinedArticles.filter(article => article.category === category.title);
 ---
 <BaseLayout title={category.title + ' ideas — Trove & Tier'} description={category.intro}>
   <Header />
