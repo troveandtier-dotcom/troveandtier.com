@@ -69,7 +69,6 @@ async function check() {
 }
 $('loginForm').addEventListener('submit',async e=>{e.preventDefault();say('loginMsg','Signing in…');const {error}=await db.auth.signInWithPassword({email:$('email').value,password:$('password').value});if(error){say('loginMsg','Sign-in failed. Check your email and password.');return;}say('loginMsg','');await check();});
 $('logout').addEventListener('click',async()=>{await db.auth.signOut();await check();});
-$('name').addEventListener('input',()=>{if(!$('slug')?.dataset.edited){}});
 $('productForm').addEventListener('submit',async e=>{
  e.preventDefault(); const button=$('publish'); button.disabled=true; button.textContent='Publishing…'; say('formMsg','Saving product and affiliate link…');
  const canonical=https($('canonical').value.trim()), affiliate=https($('affiliate').value.trim()), imageRaw=$('image').value.trim(), image=imageRaw?https(imageRaw):null, imageFile=$('imageFile').files?.[0];
