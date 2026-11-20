@@ -96,11 +96,12 @@ async function checkAccess(){
 async function loadCategories(){
  const {data,error}=await client.from('categories').select('id,name').eq('is_active',true).order('sort_order');
  const select=document.querySelector('#productCategory');if(!select||error)return;
+ select.replaceChildren(new Option('Choose a category',''));
  for(const category of data||[]){const option=document.createElement('option');option.value=category.id;option.textContent=category.name;select.append(option)}
 }
 async function loadProducts(){
  const {data,error}=await client.from('products').select('id,name,slug,status,evidence_type,updated_at').order('updated_at',{ascending:false}).limit(50);
- if(error){message(accessMessage,'Could not load product records: '+error.message);show(accessMessage,true);return}
+ if(error){message(accessMessage,'Could not load product records. Check the database permissions and try again.');show(accessMessage,true);return}
  const list=document.querySelector('#productList'); if(!list)return;
  list.replaceChildren();
  const count=data?.length||0;
@@ -134,10 +135,10 @@ async function loadOperations(){
   client.from('retailers').select('id,name,market,website_url,is_active').order('name').limit(100),
   client.from('products').select('id,name,status').order('name').limit(200),
   client.from('articles').select('id,title,slug,status,content_type,updated_at').order('updated_at',{ascending:false}).limit(30),
-  client.from('product_offers').select('id,status').limit(500),
+  client.from('product_offers').select('id,status',{count:'exact'}),
   client.from('affiliate_click_events').select('id',{count:'exact',head:true})
  ]);
- const fail=[retailers,products,articles,offers].find(x=>x.error);
+ const fail=[retailers,products,articles,offers,clicks].find(x=>x.error);
  if(fail){message(accessMessage,'Some studio records could not be loaded. Check permissions and refresh.');show(accessMessage,true);return}
  const fill=(id,items,label)=>{const el=document.querySelector('#'+id);if(!el)return;const old=el.value;el.replaceChildren(new Option('Choose '+label,''));for(const item of items||[])el.add(new Option(item.label,item.value));if(old)el.value=old};
  fill('offerProduct',(products.data||[]).filter(x=>x.status!=='archived').map(x=>({label:x.name,value:x.id})),'product');
