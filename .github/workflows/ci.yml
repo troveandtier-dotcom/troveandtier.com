@@ -2,9 +2,6 @@ name: Manual site validation
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - feat/phase-1-editorial-site
 
 permissions:
   contents: read
