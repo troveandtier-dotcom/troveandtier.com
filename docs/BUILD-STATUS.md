@@ -7,6 +7,7 @@ Phase 1 — simple affiliate product catalogue and publishing desk.
 - Astro public website with home, room/category, The Trove Edit, journal, about, policy and contact pages.
 - Private owner/editor sign-in at `/studio`, restricted by the Supabase `admin_users` allowlist.
 - One-step product publishing form: product name, brand, category, description, optional image, image-use rights, retailer, market, canonical product URL and affiliate URL.
+- Existing product controls: pause/resume each regional retailer link and archive/restore a product.
 - Optional image upload to the dedicated Supabase Storage bucket (`product-images`), limited to JPEG, PNG, WebP or AVIF up to 5 MB.
 - Published products load on matching category pages and The Trove Edit without rebuilding the site.
 - Affiliate links are direct tracked destinations with `rel="sponsored noopener noreferrer"`; affiliate disclosure is visible near product listings.
@@ -27,7 +28,8 @@ Phase 1 — simple affiliate product catalogue and publishing desk.
 - Browser test of the owner login, image upload, product publishing and public product display.
 - Logo image is not yet committed to the GitHub repository; the current header still uses a text mark.
 - Production hosting project and deployment have not been created. No public website URL is live.
-- The owner's Auth sign-in has not been tested from the website.
+- The owner Auth user exists and email is confirmed, but password sign-in has not been tested from the website.
+- Product image upload and product-management controls compile, but have not yet been exercised in a real browser.
 
 ## Deliberately deferred
 Advanced analytics, click/conversion dashboards, automated publishing, article CMS, affiliate redirect Worker, email capture and paid marketing automation. None is required to begin the first affiliate promotions once the public site and product flow are tested.
