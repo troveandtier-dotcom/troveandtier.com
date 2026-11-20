@@ -76,6 +76,7 @@ $('productForm').addEventListener('submit',async e=>{
  if(!canonical||!affiliate||(imageRaw&&!image)||(imageRaw&&imageFile)||((imageRaw||imageFile)&&!$('imageRights').value)){say('formMsg','Use valid HTTPS links for the retailer, affiliate link and image.');button.disabled=false;button.textContent='Publish product';return;}
  if(imageFile && (!['image/jpeg','image/png','image/webp','image/avif'].includes(imageFile.type) || imageFile.size > 5*1024*1024)){say('formMsg','Choose a JPEG, PNG, WebP or AVIF image under 5 MB.');button.disabled=false;button.textContent='Publish product';return;}
  const market=$('market').value as 'US'|'UK'|'CA', retailerName=$('retailer').value.trim(), now=new Date().toISOString();
+ let uploadedPath: string | null = null;
  try {
   let {data:retailer,error:retailerError}=await db.from('retailers').select('id,website_url').eq('name',retailerName).eq('market',market).maybeSingle();
   if(retailerError) throw retailerError;
@@ -86,7 +87,9 @@ $('productForm').addEventListener('submit',async e=>{
   }
   const retailerHome=https(retailer.website_url);
   if(!retailerHome || retailerHome.hostname!==canonical.hostname) throw new Error('The retailer product URL must belong to the same website as the retailer homepage. Check the retailer name or product URL.');
-  const name=$('name').value.trim(), slug=name.toLowerCase().normalize('NFKD').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+  const name=$('name').value.trim(), slug=name.toLowerCase().normalize('NFKD').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')+'-'+crypto.randomUUID().slice(0,8);
+  let imageUrl: string | null = image?.toString() || null;
+  if(imageFile){const ext={ 'image/jpeg':'jpg','image/png':'png','image/webp':'webp','image/avif':'avif' }[imageFile.type];uploadedPath=crypto.randomUUID()+'.'+ext;const upload=await db.storage.from('product-images').upload(uploadedPath,imageFile,{contentType:imageFile.type,cacheControl:'31536000',upsert:false});if(upload.error)throw upload.error;imageUrl=db.storage.from('product-images').getPublicUrl(uploadedPath).data.publicUrl;}
   const productResult=await db.from('products').insert({
    name,slug,brand:$('brand').value.trim()||null,category_id:$('category').value,
    summary:$('summary').value.trim(),description:$('summary').value.trim(),
