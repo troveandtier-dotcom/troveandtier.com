@@ -45,14 +45,14 @@ async function showProducts(){
  section.hidden=false;
  for(const product of products){
   const card=el('article','product-card');
-  if(product.image_url){const img=el('img','product-image');img.src=product.image_url;img.alt=product.name;img.loading='lazy';card.append(img);}
+  if(product.image_url){const img=el('img','product-image') as HTMLImageElement;img.src=product.image_url;img.alt=product.name;img.loading='lazy';card.append(img);}
   card.append(el('p','product-brand',product.brand||'Trove & Tier selection'));
   card.append(el('h3','',product.name));
   card.append(el('p','',product.summary||'A considered find for the home.'));
   if(product.pros?.length){const ul=el('ul');for(const point of product.pros.slice(0,3))ul.append(el('li','',point));card.append(ul);}
   card.append(el('p','evidence','Product details should be confirmed with the retailer.'));
   const links=el('div','market-offers');
-  for(const offer of product.offers){const row=el('div','offer');row.append(el('b','',offer.market));const a=el('a','',offer.retailer?.name||'Shop retailer');a.href=offer.affiliate_url||offer.canonical_url;a.target='_blank';a.rel='sponsored noopener noreferrer';a.append(document.createTextNode(' ↗'));row.append(a);links.append(row);}
+  for(const offer of product.offers){const row=el('div','offer');row.append(el('b','',offer.market));const a=el('a','',offer.retailer?.name||'Shop retailer') as HTMLAnchorElement;a.href=offer.affiliate_url||offer.canonical_url;a.target='_blank';a.rel='sponsored noopener noreferrer';a.append(document.createTextNode(' ↗'));row.append(a);links.append(row);}
   card.append(links);grid.append(card);
  }
 }
