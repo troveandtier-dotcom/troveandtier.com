@@ -143,6 +143,11 @@ async function changeStatus(table,id,status){
 }
 async function changeOfferStatus(id,status){
  if(currentRole!=='owner'){message(accessMessage,'Only the owner can activate or pause retailer offers.');show(accessMessage,true);return}
+ if(status==='active'){
+  const {data:offer,error:lookupError}=await client.from('product_offers').select('canonical_url,product:products(status),retailer:retailers(is_active,website_url)').eq('id',id).maybeSingle();
+  if(lookupError||!offer||offer.product?.status!=='published'||!offer.retailer?.is_active){message(accessMessage,'Only offers for published products and active retailers can be activated.');show(accessMessage,true);return}
+  try{const canonical=new URL(offer.canonical_url);const retailer=new URL(offer.retailer.website_url);if(canonical.protocol!=='https:'||retailer.protocol!=='https:'||canonical.hostname!==retailer.hostname){message(accessMessage,'The canonical product URL must use HTTPS and match the retailer website hostname.');show(accessMessage,true);return}}catch{message(accessMessage,'The retailer destination is not a valid HTTPS URL.');show(accessMessage,true);return}
+ }
  const payload={status,updated_at:new Date().toISOString(),...(status==='active'?{verified_at:new Date().toISOString()}:{})};
  const {error}=await client.from('product_offers').update(payload).eq('id',id);
  if(error){message(accessMessage,'Could not update the offer. Confirm its product and retailer are eligible.');show(accessMessage,true);return}
@@ -156,7 +161,7 @@ async function loadOperations(){
   client.from('articles').select('id,title,slug,status,content_type,updated_at').order('updated_at',{ascending:false}).limit(30),
   client.from('articles').select('id',{count:'exact',head:true}),
   client.from('articles').select('id',{count:'exact',head:true}).eq('status','published'),
-  client.from('product_offers').select('id,status,market,product:products(name,status),retailer:retailers(name,is_active)'),
+  client.from('product_offers').select('id,status,market,canonical_url,product:products(name,status),retailer:retailers(name,is_active,website_url)'),
   client.from('product_offers').select('id',{count:'exact',head:true}).eq('status','active'),
   client.from('affiliate_click_events').select('id',{count:'exact',head:true})
  ]);
