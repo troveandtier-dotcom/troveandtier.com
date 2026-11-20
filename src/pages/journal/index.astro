@@ -1,0 +1,15 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Header from '../../components/Header.astro';
+import { articles } from '../../data/site';
+---
+<BaseLayout title="The Journal — Trove & Tier" description="Practical ideas, considered guides and useful perspectives for better living.">
+<Header />
+<main class="wrap">
+  <header class="journal-head"><p class="eyebrow">The Trove &amp; Tier journal</p><h1>Ideas for a more<br/><em>considered home.</em></h1><p>Useful guidance for the spaces you live in, the things you bring into them and the routines that happen every day.</p></header>
+  <section class="article-list"><p class="eyebrow">The guides</p>{articles.map((article,i)=><article><span class="number">0{i+1}</span><div><small>{article.category} · {article.read}</small><h2><a href={'/journal/'+article.slug}>{article.title}</a></h2><p>{article.excerpt}</p></div><a class="read" href={'/journal/'+article.slug}>Read guide ↗</a></article>)}</section>
+</main>
+<footer><a href="/">TROVE &amp; TIER</a><span>Thoughtful finds. Better living.</span></footer>
+</BaseLayout>
+<style>
+.wrap{max-width:1160px;margin:auto;padding:0 5%}.eyebrow{font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--color-deep-sage)}.journal-head{padding:90px 0 75px;border-bottom:1px solid var(--line)}h1{font:clamp(62px,9vw,108px)/.9 var(--font-display);letter-spacing:-.04em;margin:25px 0}h1 em{color:var(--color-deep-sage);font-weight:400}.journal-head>p:last-child{max-width:500px;font-size:14px;line-height:1.8;color:#62645b}.article-list{padding:65px 0 100px}.article-list article{display:grid;grid-template-columns:70px 1fr auto;gap:20px;padding:28px 0;border-top:1px solid var(--line);align-items:center}.number{font:36px var(--font-display);color:var(--color-stone)}small{font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--color-deep-sage)}h2{font:32px/1 var(--font-display);margin:9px 0}.article-list h2 a{text-decoration:none}.article-list article p{font-size:12px;line-height:1.7;color:#66685f;max-width:620px;margin:0}.read{font-size:10px;text-decoration:none;white-space:nowrap;border-bottom:1px solid var(--color-stone);padding-bottom:6px}footer{background:var(--color-charcoal);color:var(--color-ivory);padding:28px 5%;display:flex;justify-content:space-between;font-size:10px;letter-spacing:.12em}footer a{color:inherit;text-decoration:none}@media(max-width:650px){.journal-head{padding:60px 0}.article-list article{grid-template-columns:40px 1fr}.read{grid-column:2}h2{font-size:27px}footer{flex-direction:column;gap:10px}}
