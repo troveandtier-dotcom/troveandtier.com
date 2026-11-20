@@ -1,237 +1,117 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 ---
-<BaseLayout title="Editorial Studio — Trove & Tier" description="Private editorial workspace for Trove & Tier." noindex={true}>
+<BaseLayout title="Product Desk — Trove & Tier" description="Add and publish Trove & Tier product recommendations." noindex={true}>
 <main class="studio">
-  <header class="top"><a href="/" class="brand">TROVE <span>&amp;</span> TIER <small>EDITORIAL STUDIO</small></a><a href="/" class="exit">Back to website ↗</a></header>
-  <section class="intro"><p class="eyebrow">THE PRIVATE WORKSPACE</p><h1>Make good work.<br/><em>Keep it considered.</em></h1><p>Manage product research and editorial records before anything is approved for publication.</p></section>
-  <section id="configNotice" class="notice" hidden><b>Studio connection not configured yet.</b><p>Add the Supabase project URL and publishable key as build environment variables. Never use a service-role key in the browser.</p></section>
-  <section id="loginPanel" class="panel" hidden>
-    <p class="eyebrow">EDITOR SIGN IN</p><h2>Welcome back.</h2><form id="loginForm"><label>Email<input id="email" type="email" autocomplete="username" required/></label><label>Password<input id="password" type="password" autocomplete="current-password" required/></label><button type="submit">Sign in securely ↗</button><p id="loginMessage" class="message" role="status"></p></form><p class="hint">Access is restricted to approved editorial accounts. Public registration is disabled.</p>
-  </section>
-  <section id="workspace" hidden>
-    <div class="workspaceHead"><div><p class="eyebrow">YOUR DESK</p><h2>Editorial overview</h2></div><button id="signOut" class="quiet">Sign out</button></div>
-    <div id="accessMessage" class="notice" hidden></div>
-    <div class="stats"><article><small>PRODUCT RECORDS</small><strong id="productCount">—</strong></article><article><small>IN REVIEW</small><strong id="reviewCount">—</strong></article><article><small>PUBLISHED</small><strong id="publishedCount">—</strong></article></div>
+  <header><a href="/" class="wordmark">TROVE <span>&amp;</span> TIER</a><a href="/">View website ↗</a></header>
+  <section class="intro"><p class="eyebrow">TROVE &amp; TIER · PRIVATE PRODUCT DESK</p><h1>Add a good find.<br/><em>Put it out there.</em></h1><p>Add the product, its image and your affiliate link. Publish it to the relevant room page in one step.</p></section>
+  <section id="config" class="notice" hidden>Website database connection is not configured yet. The site owner needs to add the Supabase URL and public key to the hosting environment.</section>
+  <section id="login" class="panel" hidden><h2>Sign in</h2><form id="loginForm"><label>Email<input id="email" type="email" autocomplete="username" required></label><label>Password<input id="password" type="password" autocomplete="current-password" required></label><button>Sign in</button><p id="loginMsg" role="status"></p></form></section>
+  <section id="desk" hidden>
+    <div class="deskhead"><div><p class="eyebrow">YOUR PRODUCT DESK</p><h2>New product</h2></div><button id="logout" class="secondary">Sign out</button></div>
     <div class="columns">
-      <section class="panel"><p class="eyebrow">PRODUCT RESEARCH</p><h2>New product record</h2><form id="productForm">
-        <label>Product name<input id="productName" required maxlength="160" placeholder="e.g. Stackable under-sink organizer"/></label>
-        <label>URL slug<input id="productSlug" required pattern="[a-z0-9]+(?:-[a-z0-9]+)*" maxlength="160" placeholder="stackable-under-sink-organizer"/></label>
-        <label>Brand<input id="productBrand" maxlength="120"/></label>
-        <label>Room / category<select id="productCategory"><option value="">Choose a category</option></select></label>
-        <label>Editorial summary<textarea id="productSummary" rows="3" maxlength="500" placeholder="What problem does it solve?"></textarea></label>
-        <label>Evidence basis<select id="evidenceType"><option value="editorial_research">Editorial research</option><option value="manufacturer_specification">Manufacturer specification</option><option value="independent_review">Independent review</option><option value="hands_on_test">Hands-on test (only if actually tested)</option></select></label>
-        <label>Evidence notes<textarea id="evidenceNotes" rows="3" placeholder="Record the sources and what they support."></textarea></label>
-        <label>Known advantages<textarea id="productPros" rows="2" placeholder="One per line"></textarea></label>
-        <label>Limitations / fit considerations<textarea id="productLimits" rows="2" placeholder="One per line"></textarea></label>
-        <button type="submit">Save as draft</button><p id="productMessage" class="message" role="status"></p>
-      </form></section>
-      <section class="panel records"><p class="eyebrow">THE WORK IN PROGRESS</p><h2>Product records</h2><div id="productList"><p class="hint">Sign in to load records.</p></div></section>
+      <form id="productForm" class="panel">
+        <h3>1. Product details</h3>
+        <label>Product name<input id="name" required maxlength="160" placeholder="e.g. Slim rolling storage cart"></label>
+        <label>Brand (optional)<input id="brand" maxlength="120"></label>
+        <label>Category<select id="category" required><option value="">Choose a room</option></select></label>
+        <label>Short description<textarea id="summary" required maxlength="500" rows="3" placeholder="What does it help with?"></textarea></label>
+        <label>Product image URL<input id="image" type="url" placeholder="https://..."></label>
+        <label>Image credit / source<input id="imageCredit" maxlength="240" placeholder="Who supplied the image?"></label>
+        <label class="check"><input id="imageRights" type="checkbox" required> I own this image or have permission/licence to use it.</label>
+        <label>Why it may be useful (optional)<textarea id="pros" rows="2" placeholder="One point per line"></textarea></label>
+        <label>Limitations / fit notes (optional)<textarea id="limits" rows="2" placeholder="Measurements, compatibility or caveats"></textarea></label>
+        <h3>2. Retailer &amp; affiliate link</h3>
+        <label>Retailer name<input id="retailer" required placeholder="e.g. Amazon"></label>
+        <label>Market<select id="market"><option value="US">United States</option><option value="UK">United Kingdom</option><option value="CA">Canada</option></select></label>
+        <label>Retailer product page URL<input id="canonical" type="url" required placeholder="https://retailer.com/product"></label>
+        <label>Your affiliate link<input id="affiliate" type="url" required placeholder="Paste the full tracked affiliate URL"></label>
+        <p class="hint">Use your approved affiliate link. It will be the link visitors follow. Confirm that the product page belongs to the retailer you name.</p>
+        <button type="submit" id="publish">Publish product</button>
+        <p id="formMsg" role="status" class="message"></p>
+      </form>
+      <aside class="panel side"><p class="eyebrow">HOW IT WORKS</p><h3>One simple workflow.</h3><ol><li>Add the product and a permitted image.</li><li>Paste your affiliate link and choose the market.</li><li>Publish. The product appears on its category page.</li></ol><p class="hint">No separate review queue. You can add, edit or pause products from this desk in a later update.</p><div class="stats"><div><small>PRODUCTS</small><strong id="total">—</strong></div><div><small>PUBLISHED</small><strong id="published">—</strong></div></div><h3>Recently added</h3><div id="recent" class="recent">Loading…</div></aside>
     </div>
-    <section class="section-head studio-section-head"><div><p class="eyebrow">COMMERCIAL OPERATIONS</p><h2>Retailers &amp; regional offers</h2></div><p class="hint">Keep each market's destination and affiliate URL separate. Offers remain drafts until checked.</p></section>
-    <div class="columns">
-      <section class="panel"><p class="eyebrow">RETAILER DIRECTORY</p><h2>Add a retailer</h2><form id="retailerForm">
-        <label>Retailer name<input id="retailerName" required maxlength="120" placeholder="Retailer name"/></label>
-        <label>Market<select id="retailerMarket"><option value="US">United States</option><option value="UK">United Kingdom</option><option value="CA">Canada</option></select></label>
-        <label>Official website<input id="retailerWebsite" type="url" required placeholder="https://example.com"/></label>
-        <button type="submit">Save retailer</button><p id="retailerMessage" class="message" role="status"></p>
-      </form><div id="retailerList" class="record-list"></div></section>
-      <section class="panel"><p class="eyebrow">REGIONAL PRODUCT LINKS</p><h2>Add an offer</h2><form id="offerForm">
-        <label>Product<select id="offerProduct" required><option value="">Choose product</option></select></label>
-        <label>Retailer<select id="offerRetailer" required><option value="">Choose retailer</option></select></label>
-        <label>Market<select id="offerMarket"><option value="US">United States · USD</option><option value="UK">United Kingdom · GBP</option><option value="CA">Canada · CAD</option></select></label>
-        <label>Retailer product URL<input id="offerCanonical" type="url" required placeholder="https://retailer.example/product"/></label>
-        <label>Affiliate URL (optional)<input id="offerAffiliate" type="url" placeholder="Approved tracked link"/></label>
-        <label>Price (optional)<input id="offerPrice" type="number" min="0" step="0.01" placeholder="Leave blank if not verified"/></label>
-        <label>Price checked date<input id="offerPriceDate" type="date"/></label>
-        <button type="submit">Save offer as draft</button><p id="offerMessage" class="message" role="status"></p>
-      </form><div id="offerList" class="record-list"></div><p class="hint">Never enter an estimated price. Confirm the retailer, market, destination and affiliate programme before activating an offer.</p></section>
-    </div>
-    <section class="section-head studio-section-head"><div><p class="eyebrow">EDITORIAL DESK</p><h2>Articles &amp; publishing pipeline</h2></div></section>
-    <div class="columns">
-      <section class="panel"><p class="eyebrow">NEW EDITORIAL DRAFT</p><h2>Create an article</h2><form id="articleForm">
-        <label>Article title<input id="articleTitle" required maxlength="180"/></label>
-        <label>URL slug<input id="articleSlug" required pattern="[a-z0-9]+(?:-[a-z0-9]+)*" maxlength="180"/></label>
-        <label>Content type<select id="articleType"><option value="guide">Practical guide</option><option value="editorial">Editorial feature</option><option value="roundup">Product roundup</option></select></label>
-        <label>Room / category<select id="articleCategory"><option value="">Choose a category</option></select></label>
-        <label>Short introduction<textarea id="articleExcerpt" rows="3" maxlength="350" required></textarea></label>
-        <label>Article body (Markdown)<textarea id="articleBody" rows="10" required placeholder="Write sourced, useful content. Keep evidence and personal testing clearly distinguished."></textarea></label>
-        <label>SEO title<input id="articleSeoTitle" maxlength="180"/></label>
-        <label>SEO description<textarea id="articleSeoDescription" rows="2" maxlength="300"></textarea></label>
-        <button type="submit">Save article as draft</button><p id="articleMessage" class="message" role="status"></p>
-      </form></section>
-      <section class="panel records"><p class="eyebrow">PUBLISHING PIPELINE</p><h2>Recent articles</h2><div id="articleList"><p class="hint">Your article drafts will appear here.</p></div></section>
-    </div>
-    <section class="section-head studio-section-head"><div><p class="eyebrow">MEASURE WHAT MATTERS</p><h2>Commercial &amp; editorial KPIs</h2></div><button id="refreshKpis" class="quiet">Refresh metrics</button></section>
-    <div class="stats stats-wide">
-      <article><small>ARTICLE RECORDS</small><strong id="articleCount">—</strong></article>
-      <article><small>PUBLISHED ARTICLES</small><strong id="articlePublishedCount">—</strong></article>
-      <article><small>ACTIVE REGIONAL OFFERS</small><strong id="activeOfferCount">—</strong></article>
-      <article><small>OUTBOUND CLICKS</small><strong id="clickCount">—</strong></article>
-      <article><small>AFFILIATE CONVERSIONS</small><strong>Not connected</strong></article>
-      <article><small>COMMISSIONS / REVENUE</small><strong>Not connected</strong></article>
-    </div>
-    <p class="hint kpi-note">Outbound clicks measure visits sent to retailers—not purchases, commissions or revenue. Affiliate network reports remain the source of truth for earnings.</p>
   </section>
   <footer><span>TROVE &amp; TIER</span><span>Thoughtful finds. Better living.</span></footer>
 </main>
 <script>
 import { supabase } from '../../lib/supabase';
-const client = supabase!;
-let currentRole = null;
-const configNotice=document.querySelector('#configNotice');
-const loginPanel=document.querySelector('#loginPanel');
-const workspace=document.querySelector('#workspace');
-const loginMessage=document.querySelector('#loginMessage');
-const accessMessage=document.querySelector('#accessMessage');
-const productMessage=document.querySelector('#productMessage');
-const show=(el,yes)=>{if(el)el.hidden=!yes};
-const message=(el,text)=>{if(el)el.textContent=text};
-const lines=(id)=>document.querySelector('#'+id)?.value.split('\n').map(x=>x.trim()).filter(Boolean)||[];
-async function checkAccess(){
- if(!supabase){show(configNotice,true);show(loginPanel,false);show(workspace,false);return}
- const {data:{session}}=await client.auth.getSession();
- if(!session){show(loginPanel,true);show(workspace,false);return}
- const {data:admin,error}=await client.from('admin_users').select('role').eq('user_id',session.user.id).maybeSingle();
- if(error||!admin){await client.auth.signOut();show(loginPanel,true);show(workspace,false);message(loginMessage,'This account is not on the approved editorial access list.');return}
- currentRole=admin.role;show(loginPanel,false);show(workspace,true);await loadCategories();await loadProducts();await loadOperations();
-}
-async function loadCategories(){
- const {data,error}=await client.from('categories').select('id,name').eq('is_active',true).order('sort_order');
- const select=document.querySelector('#productCategory');if(!select||error)return;
- select.replaceChildren(new Option('Choose a category',''));
- for(const category of data||[]){const option=document.createElement('option');option.value=category.id;option.textContent=category.name;select.append(option)}
-}
-async function loadProducts(){
- const [{data,error},total,published]=await Promise.all([client.from('products').select('id,name,slug,status,evidence_type,updated_at').order('updated_at',{ascending:false}).limit(50),client.from('products').select('id',{count:'exact',head:true}),client.from('products').select('id',{count:'exact',head:true}).eq('status','published')]);
- if(error){message(accessMessage,'Could not load product records. Check the database permissions and try again.');show(accessMessage,true);return}
- const list=document.querySelector('#productList'); if(!list)return;
- list.replaceChildren();
- const count=data?.length||0;
- const set=(id,value)=>{const el=document.querySelector('#'+id);if(el)el.textContent=String(value)};
- set('productCount',total.count??'—');set('reviewCount',data?.filter(x=>x.status==='in_review').length||0);set('publishedCount',published.count??'—');
- if(!count){const p=document.createElement('p');p.className='hint';p.textContent='No product records yet. Start with a researched product and keep it in draft until the evidence is complete.';list.append(p);return}
- for(const item of data||[]){const row=document.createElement('article');row.className='record';const title=document.createElement('b');title.textContent=item.name;const meta=document.createElement('small');meta.textContent=item.status.replace('_',' ')+' · '+item.evidence_type.replaceAll('_',' ');const slug=document.createElement('span');slug.textContent='/'+item.slug;row.append(title,meta,slug);const action=nextStatus(item.status);if(action && (action.status!=='published' || currentRole==='owner')){const button=document.createElement('button');button.type='button';button.className='quiet';button.textContent=action.label;button.addEventListener('click',()=>changeStatus('products',item.id,action.status));row.append(button)}list.append(row)}
-}
-document.querySelector('#loginForm')?.addEventListener('submit',async e=>{
- e.preventDefault();message(loginMessage,'Signing in…');
- const email=document.querySelector('#email').value;const password=document.querySelector('#password').value;
- const {error}=await client.auth.signInWithPassword({email,password});
- if(error){message(loginMessage,'Sign-in failed. Check your credentials or ask the owner to verify your access.');return}
- message(loginMessage,'');await checkAccess();
-});
-document.querySelector('#signOut')?.addEventListener('click',async()=>{await client.auth.signOut();await checkAccess()});
-document.querySelector('#productName')?.addEventListener('input',e=>{
- const slug=document.querySelector('#productSlug');if(!slug.dataset.edited){slug.value=e.target.value.toLowerCase().normalize('NFKD').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')}
-});
-document.querySelector('#productSlug')?.addEventListener('input',e=>{e.target.dataset.edited='true'});
-document.querySelector('#productForm')?.addEventListener('submit',async e=>{
- e.preventDefault();message(productMessage,'Saving draft…');
- const payload={name:document.querySelector('#productName').value.trim(),slug:document.querySelector('#productSlug').value.trim(),brand:document.querySelector('#productBrand').value.trim()||null,category_id:document.querySelector('#productCategory').value||null,summary:document.querySelector('#productSummary').value.trim(),evidence_type:document.querySelector('#evidenceType').value,evidence_notes:document.querySelector('#evidenceNotes').value.trim(),pros:lines('productPros'),limitations:lines('productLimits'),status:'draft'};
- const {error}=await client.from('products').insert(payload);
- if(error){message(productMessage,error.code==='23505'?'That URL slug already exists. Choose a different one.':'Could not save: '+error.message);return}
- e.target.reset();const slug=document.querySelector('#productSlug');delete slug.dataset.edited;message(productMessage,'Saved as draft. It is not public.');await loadProducts();
-});
-function nextStatus(status){return ({draft:{status:'in_review',label:'Send to review'},in_review:{status:'approved',label:'Approve'},approved:{status:'published',label:'Publish'},published:{status:'archived',label:'Archive'}})[status]||null}
-async function changeStatus(table,id,status){
- if(status==='published' && currentRole!=='owner'){message(accessMessage,'Only the owner can publish.');show(accessMessage,true);return}
- const extra=status==='published'?{published_at:new Date().toISOString(),...(table==='articles'?{last_reviewed_at:new Date().toISOString()}:{})}:{};
- const {error}=await client.from(table).update({...extra,status,updated_at:new Date().toISOString()}).eq('id',id);
- if(error){message(accessMessage,'Could not update the editorial status. Check the record and permissions.');show(accessMessage,true);return}
- message(accessMessage,'Status updated to '+status.replace('_',' ')+'.');show(accessMessage,true);
- await loadProducts();await loadOperations();
-}
-async function changeOfferStatus(id,status){
- if(currentRole!=='owner'){message(accessMessage,'Only the owner can activate or pause retailer offers.');show(accessMessage,true);return}
- if(status==='active'){
-  const {data:offer,error:lookupError}=await client.from('product_offers').select('canonical_url,product:products(status),retailer:retailers(is_active,website_url)').eq('id',id).maybeSingle();
-  if(lookupError||!offer||offer.product?.status!=='published'||!offer.retailer?.is_active){message(accessMessage,'Only offers for published products and active retailers can be activated.');show(accessMessage,true);return}
-  try{const canonical=new URL(offer.canonical_url);const retailer=new URL(offer.retailer.website_url);if(canonical.protocol!=='https:'||retailer.protocol!=='https:'||canonical.hostname!==retailer.hostname){message(accessMessage,'The canonical product URL must use HTTPS and match the retailer website hostname.');show(accessMessage,true);return}}catch{message(accessMessage,'The retailer destination is not a valid HTTPS URL.');show(accessMessage,true);return}
- }
- const payload={status,updated_at:new Date().toISOString(),...(status==='active'?{verified_at:new Date().toISOString()}:{})};
- const {error}=await client.from('product_offers').update(payload).eq('id',id);
- if(error){message(accessMessage,'Could not update the offer. Confirm its product and retailer are eligible.');show(accessMessage,true);return}
- message(accessMessage,'Offer '+status+'.');show(accessMessage,true);await loadOperations();
-}
-async function loadOperations(){
- const set=(id,value)=>{const el=document.querySelector('#'+id);if(el)el.textContent=String(value)};
- const [retailers,products,articles,articleTotal,articlePublished,offerRows,activeOfferTotal,clicks]=await Promise.all([
-  client.from('retailers').select('id,name,market,website_url,is_active').order('name').limit(100),
-  client.from('products').select('id,name,status').order('name').limit(200),
-  client.from('articles').select('id,title,slug,status,content_type,updated_at').order('updated_at',{ascending:false}).limit(30),
-  client.from('articles').select('id',{count:'exact',head:true}),
-  client.from('articles').select('id',{count:'exact',head:true}).eq('status','published'),
-  client.from('product_offers').select('id,status,market,canonical_url,product:products(name,status),retailer:retailers(name,is_active,website_url)'),
-  client.from('product_offers').select('id',{count:'exact',head:true}).eq('status','active'),
-  client.from('affiliate_click_events').select('id',{count:'exact',head:true})
+const db = supabase;
+const $ = (id) => document.getElementById(id);
+const show = (id, yes) => { $(id).hidden = !yes; };
+const say = (id, value) => { $(id).textContent = value; };
+const lines = (id) => $(id).value.split('\\n').map(x => x.trim()).filter(Boolean);
+function https(value) { try { const u = new URL(value); return u.protocol === 'https:' && !u.username && !u.password ? u : null; } catch { return null; } }
+async function loadDesk() {
+ const { data: cats, error } = await db.from('categories').select('id,name').eq('is_active',true).order('sort_order');
+ if(error) { say('formMsg','Could not load categories. Refresh and try again.'); return; }
+ $('category').replaceChildren(new Option('Choose a room',''));
+ for(const c of cats || []) $('category').add(new Option(c.name,c.id));
+ const [{data:items}, total, published] = await Promise.all([
+  db.from('products').select('name,slug,status,updated_at').order('updated_at',{ascending:false}).limit(8),
+  db.from('products').select('id',{count:'exact',head:true}),
+  db.from('products').select('id',{count:'exact',head:true}).eq('status','published')
  ]);
- const fail=[retailers,products,articles,articleTotal,articlePublished,offerRows,activeOfferTotal,clicks].find(x=>x.error);
- if(fail){message(accessMessage,'Some studio records could not be loaded. Check permissions and refresh.');show(accessMessage,true);return}
- const fill=(id,items,label)=>{const el=document.querySelector('#'+id);if(!el)return;const old=el.value;el.replaceChildren(new Option('Choose '+label,''));for(const item of items||[])el.add(new Option(item.label,item.value));if(old)el.value=old};
- fill('offerProduct',(products.data||[]).filter(x=>x.status!=='archived').map(x=>({label:x.name,value:x.id})),'product');
- fill('offerRetailer',(retailers.data||[]).filter(x=>x.is_active).map(x=>({label:x.name+' · '+x.market,value:x.id})),'retailer');
- const categoryOptions=Array.from(document.querySelector('#productCategory')?.options||[]).slice(1).map(o=>({label:o.textContent,value:o.value}));
- fill('articleCategory',categoryOptions,'category');
- const rlist=document.querySelector('#retailerList');rlist?.replaceChildren();
- for(const item of retailers.data||[]){const row=document.createElement('article');row.className='record';const title=document.createElement('b');title.textContent=item.name;const meta=document.createElement('small');meta.textContent=item.market+' · '+(item.is_active?'active':'paused');const url=document.createElement('span');url.textContent=item.website_url;row.append(title,meta,url);rlist?.append(row)}
- const offerList=document.querySelector('#offerList');offerList?.replaceChildren();
- for(const offer of offerRows.data||[]){const row=document.createElement('article');row.className='record';const title=document.createElement('b');title.textContent=offer.product?.name||'Product offer';const meta=document.createElement('small');meta.textContent=offer.market+' · '+(offer.retailer?.name||'Retailer')+' · '+offer.status;row.append(title,meta);const canActivate=offer.product?.status==='published'&&offer.retailer?.is_active;const action=offer.status==='draft'&&canActivate?{status:'active',label:'Activate offer'}:offer.status==='active'?{status:'paused',label:'Pause offer'}:offer.status==='paused'?{status:'active',label:'Reactivate'}:null;if(action&&currentRole==='owner'){const button=document.createElement('button');button.type='button';button.className='quiet';button.textContent=action.label;button.addEventListener('click',()=>changeOfferStatus(offer.id,action.status));row.append(button)}offerList?.append(row)}
- const alist=document.querySelector('#articleList');alist?.replaceChildren();
- for(const item of articles.data||[]){const row=document.createElement('article');row.className='record';const title=document.createElement('b');title.textContent=item.title;const meta=document.createElement('small');meta.textContent=item.status.replace('_',' ')+' · '+item.content_type;const slug=document.createElement('span');slug.textContent='/journal/'+item.slug;row.append(title,meta,slug);const action=nextStatus(item.status);if(action && (action.status!=='published' || currentRole==='owner')){const button=document.createElement('button');button.type='button';button.className='quiet';button.textContent=action.label;button.addEventListener('click',()=>changeStatus('articles',item.id,action.status));row.append(button)}alist?.append(row)}
- set('articleCount',articleTotal.count??'—');
- set('articlePublishedCount',articlePublished.count??'—');
- set('activeOfferCount',activeOfferTotal.count??'—');
- set('clickCount',clicks.count??'—');
+ $('total').textContent = total.count ?? '—'; $('published').textContent = published.count ?? '—';
+ $('recent').replaceChildren();
+ for(const item of items || []) { const p=document.createElement('p'); p.textContent=item.name+' · '+item.status.replace('_',' '); $('recent').append(p); }
+ if(!items?.length) $('recent').textContent='No products added yet.';
 }
-function safeHttpUrl(value){try{const u=new URL(value);return u.protocol==='https:'&&!u.username&&!u.password?u.toString():null}catch{return null}}
-document.querySelector('#retailerForm')?.addEventListener('submit',async e=>{
- e.preventDefault();message(document.querySelector('#retailerMessage'),'Saving retailer…');
- const website=safeHttpUrl(document.querySelector('#retailerWebsite').value.trim());if(!website){message(document.querySelector('#retailerMessage'),'Enter a valid HTTPS retailer website URL.');return}
- const payload={name:document.querySelector('#retailerName').value.trim(),market:document.querySelector('#retailerMarket').value,website_url:website};
- const {error}=await client.from('retailers').upsert(payload,{onConflict:'name,market'});
- if(error){message(document.querySelector('#retailerMessage'),'Could not save retailer. Check the details and try again.');return}
- e.target.reset();message(document.querySelector('#retailerMessage'),'Retailer saved.');await loadOperations();
+async function check() {
+ if(!db) { show('config',true); show('login',false); show('desk',false); return; }
+ const {data:{session}}=await db.auth.getSession();
+ if(!session) { show('login',true); show('desk',false); return; }
+ const {data:admin,error}=await db.from('admin_users').select('role').eq('user_id',session.user.id).maybeSingle();
+ if(error || !admin) { await db.auth.signOut(); show('login',true); show('desk',false); say('loginMsg','This account is not authorised to manage the website.'); return; }
+ show('login',false); show('desk',true); await loadDesk();
+}
+$('loginForm').addEventListener('submit',async e=>{e.preventDefault();say('loginMsg','Signing in…');const {error}=await db.auth.signInWithPassword({email:$('email').value,password:$('password').value});if(error){say('loginMsg','Sign-in failed. Check your email and password.');return;}say('loginMsg','');await check();});
+$('logout').addEventListener('click',async()=>{await db.auth.signOut();await check();});
+$('name').addEventListener('input',()=>{if(!$('slug')?.dataset.edited){}});
+$('productForm').addEventListener('submit',async e=>{
+ e.preventDefault(); const button=$('publish'); button.disabled=true; button.textContent='Publishing…'; say('formMsg','Saving product and affiliate link…');
+ const canonical=https($('canonical').value.trim()), affiliate=https($('affiliate').value.trim()), imageRaw=$('image').value.trim(), image=imageRaw?https(imageRaw):null;
+ if(!canonical||!affiliate||(imageRaw&&!image)){say('formMsg','Use valid HTTPS links for the retailer, affiliate link and image.');button.disabled=false;button.textContent='Publish product';return;}
+ if(canonical.hostname!==new URL(canonical.href).hostname){say('formMsg','Please check the retailer product URL.');button.disabled=false;button.textContent='Publish product';return;}
+ const market=$('market').value, retailerName=$('retailer').value.trim(), now=new Date().toISOString();
+ try {
+  let {data:retailer,error:retailerError}=await db.from('retailers').select('id,website_url').eq('name',retailerName).eq('market',market).maybeSingle();
+  if(retailerError) throw retailerError;
+  if(!retailer){
+   const home=new URL(canonical.origin).toString();
+   const result=await db.from('retailers').insert({name:retailerName,market,website_url:home,is_active:true}).select('id,website_url').single();
+   if(result.error) throw result.error; retailer=result.data;
+  }
+  const retailerHome=https(retailer.website_url);
+  if(!retailerHome || retailerHome.hostname!==canonical.hostname) throw new Error('The retailer product URL must belong to the same website as the retailer homepage. Check the retailer name or product URL.');
+  const name=$('name').value.trim(), slug=name.toLowerCase().normalize('NFKD').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+  const productResult=await db.from('products').insert({
+   name,slug,brand:$('brand').value.trim()||null,category_id:$('category').value,
+   summary:$('summary').value.trim(),description:$('summary').value.trim(),
+   image_url:image?.toString()||null,image_credit:$('imageCredit').value.trim()||null,
+   image_rights_status:'licensed',evidence_type:'editorial_research',
+   evidence_notes:'Product listing supplied by the Trove & Tier editor.',
+   pros:lines('pros'),limitations:lines('limits'),status:'published',published_at:now,last_verified_at:now
+  }).select('id').single();
+  if(productResult.error) throw productResult.error;
+  const offerResult=await db.from('product_offers').insert({
+   product_id:productResult.data.id,retailer_id:retailer.id,market,
+   currency:{US:'USD',UK:'GBP',CA:'CAD'}[market],canonical_url:canonical.toString(),
+   affiliate_url:affiliate.toString(),status:'active',verified_at:now
+  });
+  if(offerResult.error) {
+   await db.from('products').delete().eq('id',productResult.data.id);
+   throw offerResult.error;
+  }
+  e.target.reset(); say('formMsg','Published. Your product is now on its room/category page.'); await loadDesk();
+ } catch(err) { say('formMsg',err?.message || 'Could not publish this product. Check the details and try again.'); }
+ finally { button.disabled=false;button.textContent='Publish product'; }
 });
-document.querySelector('#offerMarket')?.addEventListener('change',e=>{
- const currency={US:'USD',UK:'GBP',CA:'CAD'}[e.target.value];
- const retailer=document.querySelector('#offerRetailer');if(retailer)retailer.value='';
- const note=document.querySelector('#offerMessage');message(note,'Market currency: '+currency+'. Choose a matching retailer for this market.');
-});
-document.querySelector('#offerForm')?.addEventListener('submit',async e=>{
- e.preventDefault();const msg=document.querySelector('#offerMessage');message(msg,'Saving offer as draft…');
- const canonical=safeHttpUrl(document.querySelector('#offerCanonical').value.trim());
- const affiliateRaw=document.querySelector('#offerAffiliate').value.trim();
- const affiliate=affiliateRaw?safeHttpUrl(affiliateRaw):null;
- if(!canonical|| (affiliateRaw&&!affiliate)){message(msg,'Enter valid HTTPS URLs.');return}
- const market=document.querySelector('#offerMarket').value;
- const retailerId=document.querySelector('#offerRetailer').value;
- const selectedRetailer=Array.from(document.querySelector('#offerRetailer').selectedOptions)[0];
- if(!retailerId||!selectedRetailer){message(msg,'Choose a retailer.');return}
- if(!selectedRetailer.textContent.endsWith('· '+market)){message(msg,'Choose a retailer registered for the same market.');return}
- const price=document.querySelector('#offerPrice').value;
- const checked=document.querySelector('#offerPriceDate').value;
- const payload={product_id:document.querySelector('#offerProduct').value,retailer_id:retailerId,market,currency:{US:'USD',UK:'GBP',CA:'CAD'}[market],canonical_url:canonical,affiliate_url:affiliate,price_amount:price===''?null:Number(price),price_checked_at:checked?new Date(checked+'T12:00:00Z').toISOString():null,status:'draft'};
- if(!payload.product_id){message(msg,'Choose a product.');return}
- const {error}=await client.from('product_offers').upsert(payload,{onConflict:'product_id,retailer_id,market'});
- if(error){message(msg,'Could not save offer. Check that the product/retailer/market combination is unique.');return}
- e.target.reset();message(msg,'Offer saved as draft. It is not publicly available.');await loadOperations();
-});
-document.querySelector('#articleTitle')?.addEventListener('input',e=>{
- const slug=document.querySelector('#articleSlug');if(!slug.dataset.edited)slug.value=e.target.value.toLowerCase().normalize('NFKD').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
-});
-document.querySelector('#articleSlug')?.addEventListener('input',e=>{e.target.dataset.edited='true'});
-document.querySelector('#articleForm')?.addEventListener('submit',async e=>{
- e.preventDefault();const msg=document.querySelector('#articleMessage');message(msg,'Saving article draft…');
- const payload={title:document.querySelector('#articleTitle').value.trim(),slug:document.querySelector('#articleSlug').value.trim(),content_type:document.querySelector('#articleType').value,category_id:document.querySelector('#articleCategory').value||null,excerpt:document.querySelector('#articleExcerpt').value.trim(),body_markdown:document.querySelector('#articleBody').value,seo_title:document.querySelector('#articleSeoTitle').value.trim()||null,seo_description:document.querySelector('#articleSeoDescription').value.trim()||null,status:'draft'};
- const {error}=await client.from('articles').insert(payload);
- if(error){message(msg,error.code==='23505'?'That article URL already exists. Choose another slug.':'Could not save article draft. Check required fields and try again.');return}
- e.target.reset();delete document.querySelector('#articleSlug').dataset.edited;message(msg,'Article saved as a private draft.');await loadOperations();
-});
-document.querySelector('#refreshKpis')?.addEventListener('click',loadOperations);
-if(supabase){client.auth.onAuthStateChange(()=>{setTimeout(checkAccess,0)})}
-checkAccess();
+if(db) db.auth.onAuthStateChange(()=>{check();});
+check();
 </script>
 <style>
-.studio{min-height:100vh;background:#f5f0e7;color:var(--color-charcoal);padding:0 5% 30px}.top{max-width:1200px;margin:auto;padding:25px 0;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}.brand{font:20px var(--font-display);letter-spacing:.12em;color:inherit;text-decoration:none}.brand span{color:var(--color-deep-sage)}.brand small{display:block;font:8px var(--font-body);letter-spacing:.2em;margin-top:4px}.exit{font-size:10px;color:var(--color-deep-sage)}.intro{max-width:1200px;margin:65px auto 45px}.eyebrow{font-size:9px;letter-spacing:.17em;color:var(--color-deep-sage)}h1{font:clamp(54px,8vw,88px)/.92 var(--font-display);margin:17px 0}h1 em{font-weight:400;color:var(--color-deep-sage)}.intro>p:last-child{font-size:13px;color:#67685f;line-height:1.8;max-width:530px}.panel{background:#fffdf8;padding:27px;border:1px solid #e2dbcf}.panel h2,.workspaceHead h2{font:34px var(--font-display);margin:10px 0 24px}.panel form{display:grid;gap:15px}.panel label{font-size:10px;display:grid;gap:7px;color:#55574f}.panel input,.panel textarea,.panel select{width:100%;box-sizing:border-box;border:1px solid #d9d2c6;background:#fffdf8;padding:12px;font:12px var(--font-body);color:#33352f;border-radius:0}.panel button,.columns button{background:var(--color-charcoal);color:#fff;padding:13px 18px;border:0;font-size:10px;letter-spacing:.08em;cursor:pointer}.notice{max-width:1200px;margin:0 auto 25px;background:#e7dfd1;padding:18px;font-size:12px;line-height:1.7}.notice p{margin-bottom:0}.workspaceHead{max-width:1200px;margin:35px auto 20px;display:flex;align-items:center;justify-content:space-between}.workspaceHead h2{margin-bottom:0}.quiet{background:transparent!important;color:var(--color-charcoal)!important;border:1px solid var(--line)!important}.stats{max-width:1200px;margin:20px auto;display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.stats article{padding:18px;background:#e7e1d6;display:grid;gap:10px}.stats small,.record small{font-size:8px;letter-spacing:.13em;text-transform:uppercase}.stats strong{font:32px var(--font-display)}.studio-section-head{max-width:1200px;margin:65px auto 20px;display:flex;gap:20px;align-items:end}.studio-section-head h2{font:34px var(--font-display);margin:8px 0}.studio-section-head>.hint{max-width:340px}.record-list{margin-top:20px}.stats-wide{grid-template-columns:repeat(4,1fr)}.kpi-note{max-width:1200px;margin:12px auto}.columns{max-width:1200px;margin:20px auto;display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start}.records{min-height:280px}.record{padding:15px 0;border-top:1px solid var(--line);display:grid;gap:6px}.record b{font:20px var(--font-display)}.record small{color:var(--color-deep-sage)}.record span,.hint,.message{font-size:10px;color:#696b62;line-height:1.7}.message{min-height:15px}.hint{margin-top:18px}.studio footer{max-width:1200px;margin:70px auto 0;padding-top:18px;border-top:1px solid var(--line);display:flex;justify-content:space-between;font-size:9px;letter-spacing:.15em}.studio a:focus-visible,.studio button:focus-visible,.studio input:focus-visible,.studio textarea:focus-visible,.studio select:focus-visible{outline:2px solid #5b6657;outline-offset:3px}@media(max-width:720px){.studio-section-head{align-items:start;flex-direction:column}.stats-wide{grid-template-columns:repeat(2,1fr)}.columns{grid-template-columns:1fr}.stats{grid-template-columns:1fr}.intro{margin-top:45px}.top{align-items:flex-start}.studio footer{flex-direction:column;gap:8px}}
+.studio{min-height:100vh;background:#f5f0e7;color:var(--color-charcoal);padding:0 5% 35px}header,footer{max-width:1160px;margin:auto;display:flex;justify-content:space-between;align-items:center;padding:25px 0;border-bottom:1px solid var(--line)}header a,footer{font-size:10px;color:var(--color-deep-sage);text-decoration:none}.wordmark{font:21px var(--font-display);letter-spacing:.12em;color:var(--color-charcoal)}.wordmark span{color:var(--color-deep-sage)}.intro{max-width:1160px;margin:65px auto 40px}.eyebrow{font-size:9px;letter-spacing:.17em;text-transform:uppercase;color:var(--color-deep-sage)}h1{font:clamp(54px,8vw,88px)/.92 var(--font-display);margin:17px 0}h1 em{font-weight:400;color:var(--color-deep-sage)}.intro>p:last-child{font-size:13px;color:#67685f;line-height:1.8;max-width:560px}.panel{background:#fffdf8;border:1px solid #e2dbcf;padding:25px}.panel h2,.deskhead h2{font:34px var(--font-display);margin:8px 0 20px}.panel h3{font:27px var(--font-display);margin:0 0 20px}.columns{max-width:1160px;margin:20px auto;display:grid;grid-template-columns:1.2fr .8fr;gap:18px;align-items:start}.panel form{display:grid;gap:13px}.panel label{font-size:10px;display:grid;gap:7px;color:#55574f}.panel input,.panel textarea,.panel select{width:100%;box-sizing:border-box;border:1px solid #d9d2c6;background:#fffdf8;padding:12px;font:12px var(--font-body);color:#33352f;border-radius:0}.panel .check{display:flex;align-items:center;gap:10px}.panel .check input{width:17px;height:17px}.panel button{background:var(--color-charcoal);color:white;border:0;padding:14px 18px;font-size:10px;letter-spacing:.08em;cursor:pointer}.panel button:disabled{opacity:.55}.secondary{background:transparent!important;color:var(--color-charcoal)!important;border:1px solid var(--line)!important}.deskhead{max-width:1160px;margin:35px auto 20px;display:flex;justify-content:space-between;align-items:center}.deskhead h2{margin:7px 0}.hint,.message,#loginMsg{font-size:11px;line-height:1.7;color:#696b62}.side{position:sticky;top:20px}.side ol{padding-left:20px;font-size:12px;line-height:1.9}.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:25px 0}.stats div{background:#e7e1d6;padding:15px;display:grid;gap:7px}.stats small{font-size:8px;letter-spacing:.12em}.stats strong{font:29px var(--font-display)}.recent p{padding:10px 0;border-top:1px solid var(--line);font-size:11px;margin:0}.notice{max-width:1160px;margin:0 auto;padding:18px;background:#e7dfd1;font-size:12px}footer{border-top:1px solid var(--line);border-bottom:0;margin-top:65px;font-size:9px;letter-spacing:.14em;color:var(--color-charcoal)}@media(max-width:760px){.columns{grid-template-columns:1fr}.side{position:static}.intro{margin-top:45px}header{align-items:flex-start}}
 </style>
 </BaseLayout>
