@@ -19,6 +19,8 @@ The GitHub Actions workflow is manual-only with one Ubuntu job and an 8-minute t
 8. Open `/the-edit` and confirm the product appears there too.
 9. Click the retailer link and confirm it opens the exact affiliate URL in a new tab.
 10. Confirm the affiliate disclosure is visible near the product list.
+11. In the Product Desk, pause the regional retailer link and confirm it disappears from public listings; resume it and confirm it returns.
+12. Archive the product and confirm it disappears from public listings; restore it and confirm it returns.
 
 ## Security checks
 - Anonymous visitors cannot access `/studio` product data or draft records.
@@ -40,5 +42,7 @@ The GitHub Actions workflow is manual-only with one Ubuntu job and an 8-minute t
 ## Current verification record
 - Supabase owner-context transaction test: retailer + product + regional offer inserted successfully and transaction rolled back; no test records retained.
 - Product image bucket and editor-only Storage policies: created and confirmed.
-- Current branch Astro check/build: not yet run.
-- Browser test / live deployment: not yet run.
+- Current branch Astro check: passed (0 errors, 0 warnings, 0 hints).
+- Current branch production build: passed; 23 static pages generated successfully.
+- Browser test of login, image upload, publishing and pause/archive controls: not yet run.
+- Live deployment: not yet run.
