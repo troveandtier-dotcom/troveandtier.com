@@ -16,7 +16,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
         <label>Brand (optional)<input id="brand" maxlength="120"></label>
         <label>Category<select id="category" required><option value="">Choose a room</option></select></label>
         <label>Short description<textarea id="summary" required maxlength="500" rows="3" placeholder="What does it help with?"></textarea></label>
-        <label>Product image URL<input id="image" type="url" placeholder="https://..."></label>
+        <label>Upload product image<input id="imageFile" type="file" accept="image/jpeg,image/png,image/webp,image/avif"></label><label>Or use an image URL<input id="image" type="url" placeholder="https://..."></label><p class="hint">Images up to 5 MB. JPEG, PNG, WebP or AVIF. Uploading a file is optional.</p>
         <label>Image credit / source<input id="imageCredit" maxlength="240" placeholder="Who supplied the image?"></label>
         <label>Image usage rights<select id="imageRights"><option value="">Choose if using an image</option><option value="owned">I created or own this image</option><option value="licensed">I have a licence to use it</option><option value="manufacturer_permission">The manufacturer authorised its use</option></select></label>
         <label>Why it may be useful (optional)<textarea id="pros" rows="2" placeholder="One point per line"></textarea></label>
@@ -71,9 +71,9 @@ $('logout').addEventListener('click',async()=>{await db.auth.signOut();await che
 $('name').addEventListener('input',()=>{if(!$('slug')?.dataset.edited){}});
 $('productForm').addEventListener('submit',async e=>{
  e.preventDefault(); const button=$('publish'); button.disabled=true; button.textContent='Publishing…'; say('formMsg','Saving product and affiliate link…');
- const canonical=https($('canonical').value.trim()), affiliate=https($('affiliate').value.trim()), imageRaw=$('image').value.trim(), image=imageRaw?https(imageRaw):null;
- if(!canonical||!affiliate||(imageRaw&&!image)|| (imageRaw&&!$('imageRights').value)){say('formMsg','Use valid HTTPS links for the retailer, affiliate link and image.');button.disabled=false;button.textContent='Publish product';return;}
- if(canonical.hostname!==new URL(canonical.href).hostname){say('formMsg','Please check the retailer product URL.');button.disabled=false;button.textContent='Publish product';return;}
+ const canonical=https($('canonical').value.trim()), affiliate=https($('affiliate').value.trim()), imageRaw=$('image').value.trim(), image=imageRaw?https(imageRaw):null, imageFile=$('imageFile').files[0];
+ if(!canonical||!affiliate||(imageRaw&&!image)||(imageRaw&&imageFile)||((imageRaw||imageFile)&&!$('imageRights').value)){say('formMsg','Use valid HTTPS links for the retailer, affiliate link and image.');button.disabled=false;button.textContent='Publish product';return;}
+ if(imageFile && (!['image/jpeg','image/png','image/webp','image/avif'].includes(imageFile.type) || imageFile.size > 5*1024*1024)){say('formMsg','Choose a JPEG, PNG, WebP or AVIF image under 5 MB.');button.disabled=false;button.textContent='Publish product';return;}
  const market=$('market').value, retailerName=$('retailer').value.trim(), now=new Date().toISOString();
  try {
   let {data:retailer,error:retailerError}=await db.from('retailers').select('id,website_url').eq('name',retailerName).eq('market',market).maybeSingle();
@@ -89,7 +89,7 @@ $('productForm').addEventListener('submit',async e=>{
   const productResult=await db.from('products').insert({
    name,slug,brand:$('brand').value.trim()||null,category_id:$('category').value,
    summary:$('summary').value.trim(),description:$('summary').value.trim(),
-   image_url:image?.toString()||null,image_credit:$('imageCredit').value.trim()||null,
+   image_url:imageUrl,image_credit:$('imageCredit').value.trim()||null,
    image_rights_status:image?$('imageRights').value:'unverified',evidence_type:'editorial_research',
    evidence_notes:'Product listing supplied by the Trove & Tier editor.',
    pros:lines('pros'),limitations:lines('limits'),status:'published',published_at:now,last_verified_at:now
@@ -105,7 +105,7 @@ $('productForm').addEventListener('submit',async e=>{
    throw offerResult.error;
   }
   e.target.reset(); say('formMsg','Published. Your product is now on its room/category page.'); await loadDesk();
- } catch(err) { say('formMsg',err?.message || 'Could not publish this product. Check the details and try again.'); }
+ } catch(err) { if(uploadedPath) await db.storage.from('product-images').remove([uploadedPath]); say('formMsg',err?.message || 'Could not publish this product. Check the details and try again.'); }
  finally { button.disabled=false;button.textContent='Publish product'; }
 });
 if(db) db.auth.onAuthStateChange(()=>{check();});
