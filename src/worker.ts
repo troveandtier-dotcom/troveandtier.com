@@ -71,7 +71,7 @@ async function redirectOffer(request: Request, env: Env, ctx: { waitUntil(promis
       })
     }).then(() => undefined).catch(() => undefined));
   }
-  return Response.redirect(destination.toString(), 302);
+  return new Response(null, { status: 302, headers: { Location: destination.toString(), 'Cache-Control': 'no-store' } });
 }
 export default {
   async fetch(request: Request, env: Env, ctx: { waitUntil(promise: Promise<unknown>): void }): Promise<Response> {
