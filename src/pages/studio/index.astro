@@ -1,0 +1,88 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+---
+<BaseLayout title="Editorial Studio — Trove & Tier" description="Private editorial workspace for Trove & Tier." noindex={true}>
+<main class="studio">
+  <header class="top"><a href="/" class="brand">TROVE <span>&amp;</span> TIER <small>EDITORIAL STUDIO</small></a><a href="/" class="exit">Back to website ↗</a></header>
+  <section class="intro"><p class="eyebrow">THE PRIVATE WORKSPACE</p><h1>Make good work.<br/><em>Keep it considered.</em></h1><p>Manage product research and editorial records before anything is approved for publication.</p></section>
+  <section id="configNotice" class="notice" hidden><b>Studio connection not configured yet.</b><p>Add the Supabase project URL and publishable key as build environment variables. Never use a service-role key in the browser.</p></section>
+  <section id="loginPanel" class="panel" hidden>
+    <p class="eyebrow">EDITOR SIGN IN</p><h2>Welcome back.</h2><form id="loginForm"><label>Email<input id="email" type="email" autocomplete="username" required/></label><label>Password<input id="password" type="password" autocomplete="current-password" required/></label><button type="submit">Sign in securely ↗</button><p id="loginMessage" class="message" role="status"></p></form><p class="hint">Access is restricted to approved editorial accounts. Public registration is disabled.</p>
+  </section>
+  <section id="workspace" hidden>
+    <div class="workspaceHead"><div><p class="eyebrow">YOUR DESK</p><h2>Editorial overview</h2></div><button id="signOut" class="quiet">Sign out</button></div>
+    <div id="accessMessage" class="notice" hidden></div>
+    <div class="stats"><article><small>PRODUCT RECORDS</small><strong id="productCount">—</strong></article><article><small>IN REVIEW</small><strong id="reviewCount">—</strong></article><article><small>PUBLISHED</small><strong id="publishedCount">—</strong></article></div>
+    <div class="columns">
+      <section class="panel"><p class="eyebrow">PRODUCT RESEARCH</p><h2>New product record</h2><form id="productForm">
+        <label>Product name<input id="productName" required maxlength="160" placeholder="e.g. Stackable under-sink organizer"/></label>
+        <label>URL slug<input id="productSlug" required pattern="[a-z0-9]+(?:-[a-z0-9]+)*" maxlength="160" placeholder="stackable-under-sink-organizer"/></label>
+        <label>Brand<input id="productBrand" maxlength="120"/></label>
+        <label>Editorial summary<textarea id="productSummary" rows="3" maxlength="500" placeholder="What problem does it solve?"></textarea></label>
+        <label>Evidence basis<select id="evidenceType"><option value="editorial_research">Editorial research</option><option value="manufacturer_specification">Manufacturer specification</option><option value="independent_review">Independent review</option><option value="hands_on_test">Hands-on test (only if actually tested)</option></select></label>
+        <label>Evidence notes<textarea id="evidenceNotes" rows="3" placeholder="Record the sources and what they support."></textarea></label>
+        <label>Known advantages<textarea id="productPros" rows="2" placeholder="One per line"></textarea></label>
+        <label>Limitations / fit considerations<textarea id="productLimits" rows="2" placeholder="One per line"></textarea></label>
+        <button type="submit">Save as draft</button><p id="productMessage" class="message" role="status"></p>
+      </form></section>
+      <section class="panel records"><p class="eyebrow">THE WORK IN PROGRESS</p><h2>Product records</h2><div id="productList"><p class="hint">Sign in to load records.</p></div></section>
+    </div>
+  </section>
+  <footer><span>TROVE &amp; TIER</span><span>Thoughtful finds. Better living.</span></footer>
+</main>
+<script>
+import { supabase, supabaseConfigured } from '../../lib/supabase';
+const configNotice=document.querySelector('#configNotice');
+const loginPanel=document.querySelector('#loginPanel');
+const workspace=document.querySelector('#workspace');
+const loginMessage=document.querySelector('#loginMessage');
+const accessMessage=document.querySelector('#accessMessage');
+const productMessage=document.querySelector('#productMessage');
+const show=(el,yes)=>{if(el)el.hidden=!yes};
+const message=(el,text)=>{if(el)el.textContent=text};
+const lines=(id)=>document.querySelector('#'+id)?.value.split('\n').map(x=>x.trim()).filter(Boolean)||[];
+async function checkAccess(){
+ if(!supabase){show(configNotice,true);show(loginPanel,false);show(workspace,false);return}
+ const {data:{session}}=await supabase.auth.getSession();
+ if(!session){show(loginPanel,true);show(workspace,false);return}
+ const {data:admin,error}=await supabase.from('admin_users').select('role').eq('user_id',session.user.id).maybeSingle();
+ if(error||!admin){await supabase.auth.signOut();show(loginPanel,true);show(workspace,false);message(loginMessage,'This account is not on the approved editorial access list.');return}
+ show(loginPanel,false);show(workspace,true);await loadProducts();
+}
+async function loadProducts(){
+ const {data,error}=await supabase.from('products').select('id,name,slug,status,evidence_type,updated_at').order('updated_at',{ascending:false}).limit(50);
+ if(error){message(accessMessage,'Could not load product records: '+error.message);show(accessMessage,true);return}
+ const list=document.querySelector('#productList'); if(!list)return;
+ list.replaceChildren();
+ const count=data?.length||0;
+ const set=(id,value)=>{const el=document.querySelector('#'+id);if(el)el.textContent=String(value)};
+ set('productCount',count);set('reviewCount',data?.filter(x=>x.status==='in_review').length||0);set('publishedCount',data?.filter(x=>x.status==='published').length||0);
+ if(!count){const p=document.createElement('p');p.className='hint';p.textContent='No product records yet. Start with a researched product and keep it in draft until the evidence is complete.';list.append(p);return}
+ for(const item of data||[]){const row=document.createElement('article');row.className='record';const title=document.createElement('b');title.textContent=item.name;const meta=document.createElement('small');meta.textContent=item.status.replace('_',' ')+' · '+item.evidence_type.replaceAll('_',' ');const slug=document.createElement('span');slug.textContent='/'+item.slug;row.append(title,meta,slug);list.append(row)}
+}
+document.querySelector('#loginForm')?.addEventListener('submit',async e=>{
+ e.preventDefault();message(loginMessage,'Signing in…');
+ const email=document.querySelector('#email').value;const password=document.querySelector('#password').value;
+ const {error}=await supabase.auth.signInWithPassword({email,password});
+ if(error){message(loginMessage,'Sign-in failed. Check your credentials or ask the owner to verify your access.');return}
+ message(loginMessage,'');await checkAccess();
+});
+document.querySelector('#signOut')?.addEventListener('click',async()=>{await supabase.auth.signOut();await checkAccess()});
+document.querySelector('#productName')?.addEventListener('input',e=>{
+ const slug=document.querySelector('#productSlug');if(!slug.dataset.edited){slug.value=e.target.value.toLowerCase().normalize('NFKD').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')}
+});
+document.querySelector('#productSlug')?.addEventListener('input',e=>{e.target.dataset.edited='true'});
+document.querySelector('#productForm')?.addEventListener('submit',async e=>{
+ e.preventDefault();message(productMessage,'Saving draft…');
+ const payload={name:document.querySelector('#productName').value.trim(),slug:document.querySelector('#productSlug').value.trim(),brand:document.querySelector('#productBrand').value.trim()||null,summary:document.querySelector('#productSummary').value.trim(),evidence_type:document.querySelector('#evidenceType').value,evidence_notes:document.querySelector('#evidenceNotes').value.trim(),pros:lines('productPros'),limitations:lines('productLimits'),status:'draft'};
+ const {error}=await supabase.from('products').insert(payload);
+ if(error){message(productMessage,error.code==='23505'?'That URL slug already exists. Choose a different one.':'Could not save: '+error.message);return}
+ e.target.reset();const slug=document.querySelector('#productSlug');delete slug.dataset.edited;message(productMessage,'Saved as draft. It is not public.');await loadProducts();
+});
+if(supabase){supabase.auth.onAuthStateChange(()=>{setTimeout(checkAccess,0)})}
+checkAccess();
+</script>
+<style>
+.studio{min-height:100vh;background:#f5f0e7;color:var(--color-charcoal);padding:0 5% 30px}.top{max-width:1200px;margin:auto;padding:25px 0;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}.brand{font:20px var(--font-display);letter-spacing:.12em;color:inherit;text-decoration:none}.brand span{color:var(--color-deep-sage)}.brand small{display:block;font:8px var(--font-body);letter-spacing:.2em;margin-top:4px}.exit{font-size:10px;color:var(--color-deep-sage)}.intro{max-width:1200px;margin:65px auto 45px}.eyebrow{font-size:9px;letter-spacing:.17em;color:var(--color-deep-sage)}h1{font:clamp(54px,8vw,88px)/.92 var(--font-display);margin:17px 0}h1 em{font-weight:400;color:var(--color-deep-sage)}.intro>p:last-child{font-size:13px;color:#67685f;line-height:1.8;max-width:530px}.panel{background:#fffdf8;padding:27px;border:1px solid #e2dbcf}.panel h2,.workspaceHead h2{font:34px var(--font-display);margin:10px 0 24px}.panel form{display:grid;gap:15px}.panel label{font-size:10px;display:grid;gap:7px;color:#55574f}.panel input,.panel textarea,.panel select{width:100%;box-sizing:border-box;border:1px solid #d9d2c6;background:#fffdf8;padding:12px;font:12px var(--font-body);color:#33352f;border-radius:0}.panel button,.columns button{background:var(--color-charcoal);color:#fff;padding:13px 18px;border:0;font-size:10px;letter-spacing:.08em;cursor:pointer}.notice{max-width:1200px;margin:0 auto 25px;background:#e7dfd1;padding:18px;font-size:12px;line-height:1.7}.notice p{margin-bottom:0}.workspaceHead{max-width:1200px;margin:35px auto 20px;display:flex;align-items:center;justify-content:space-between}.workspaceHead h2{margin-bottom:0}.quiet{background:transparent!important;color:var(--color-charcoal)!important;border:1px solid var(--line)!important}.stats{max-width:1200px;margin:20px auto;display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.stats article{padding:18px;background:#e7e1d6;display:grid;gap:10px}.stats small,.record small{font-size:8px;letter-spacing:.13em;text-transform:uppercase}.stats strong{font:32px var(--font-display)}.columns{max-width:1200px;margin:20px auto;display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start}.records{min-height:280px}.record{padding:15px 0;border-top:1px solid var(--line);display:grid;gap:6px}.record b{font:20px var(--font-display)}.record small{color:var(--color-deep-sage)}.record span,.hint,.message{font-size:10px;color:#696b62;line-height:1.7}.message{min-height:15px}.hint{margin-top:18px}.studio footer{max-width:1200px;margin:70px auto 0;padding-top:18px;border-top:1px solid var(--line);display:flex;justify-content:space-between;font-size:9px;letter-spacing:.15em}.studio a:focus-visible,.studio button:focus-visible,.studio input:focus-visible,.studio textarea:focus-visible,.studio select:focus-visible{outline:2px solid #5b6657;outline-offset:3px}@media(max-width:720px){.columns{grid-template-columns:1fr}.stats{grid-template-columns:1fr}.intro{margin-top:45px}.top{align-items:flex-start}.studio footer{flex-direction:column;gap:8px}}
+</style>
+</BaseLayout>
