@@ -1,0 +1,16 @@
+---
+import '../styles/tokens.css';
+const { title = 'Trove & Tier — Thoughtful finds. Better living.', description = 'Thoughtful home finds, practical ideas and considered essentials for better living.' } = Astro.props;
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content={description} />
+    <meta name="theme-color" content="#E9E2D7" />
+    <title>{title}</title>
+    <slot name="head" />
+  </head>
+  <body><slot /></body>
+</html>
