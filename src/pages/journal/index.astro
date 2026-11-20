@@ -4,7 +4,7 @@ import Header from '../../components/Header.astro';
 import { articles } from '../../data/site';
 import { getPublishedArticles } from '../../lib/public-content';
 const published = await getPublishedArticles();
-const entries = published.length ? published.map(a => ({...a, category: a.category?.name || 'Home & Living', read: 'Editorial' })) : articles;
+const entries = [...published.map(a => ({...a, category: a.category?.name || 'Home & Living', read: 'Editorial' })), ...articles.filter(item => !published.some(a => a.slug === item.slug))];
 ---
 <BaseLayout title="The Journal — Trove & Tier" description="Practical ideas, considered guides and useful perspectives for better living.">
 <Header />
