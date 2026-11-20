@@ -11,7 +11,8 @@ export type PublishedArticle = {
 };
 export type PublishedProduct = {
   id: string; slug: string; name: string; brand: string | null; summary: string;
-  description: string; pros: string[]; limitations: string[]; evidence_type: string;
+  description: string; image_url: string | null; image_credit: string | null;
+  pros: string[]; limitations: string[]; evidence_type: string;
   category: { name: string; slug: string } | null;
   offers: Array<{ id: string; market: 'US'|'UK'|'CA'; currency: string; canonical_url: string;
     affiliate_url: string | null; price_amount: number | null; price_checked_at: string | null;
@@ -30,7 +31,7 @@ export async function getPublishedArticles(): Promise<PublishedArticle[]> {
 export async function getPublishedProducts(): Promise<PublishedProduct[]> {
   if (!db) return [];
   const { data, error } = await db.from('products')
-    .select('id,slug,name,brand,summary,description,pros,limitations,evidence_type,category:categories(name,slug),offers:product_offers(id,market,currency,canonical_url,affiliate_url,price_amount,price_checked_at,retailer:retailers(name,website_url))')
+    .select('id,slug,name,brand,summary,description,image_url,image_credit,pros,limitations,evidence_type,category:categories(name,slug),offers:product_offers(id,market,currency,canonical_url,affiliate_url,price_amount,price_checked_at,retailer:retailers(name,website_url))')
     .eq('status', 'published');
   if (error) { console.error('Published product snapshot unavailable:', error.message); return []; }
   return (data || []).map((product: any) => ({
@@ -48,7 +49,6 @@ function escapeHtml(value: string) {
     .replaceAll('"', '&quot;').replaceAll("'", '&#39;');
 }
 
-// Deliberately small Markdown subset. Raw HTML is escaped; links accept only http(s) or same-site paths.
 export function markdownToSafeHtml(markdown: string): string {
   const inline = (raw: string) => {
     let value = escapeHtml(raw);
