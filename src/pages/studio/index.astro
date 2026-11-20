@@ -178,10 +178,10 @@ async function loadOperations(){
  set('activeOfferCount',activeOfferTotal.count??'—');
  set('clickCount',clicks.count??'—');
 }
-function safeHttpUrl(value){try{const u=new URL(value);return u.protocol==='https:'||u.protocol==='http:'?u.toString():null}catch{return null}}
+function safeHttpUrl(value){try{const u=new URL(value);return u.protocol==='https:'&&!u.username&&!u.password?u.toString():null}catch{return null}}
 document.querySelector('#retailerForm')?.addEventListener('submit',async e=>{
  e.preventDefault();message(document.querySelector('#retailerMessage'),'Saving retailer…');
- const website=safeHttpUrl(document.querySelector('#retailerWebsite').value.trim());if(!website){message(document.querySelector('#retailerMessage'),'Enter a valid http or https website URL.');return}
+ const website=safeHttpUrl(document.querySelector('#retailerWebsite').value.trim());if(!website){message(document.querySelector('#retailerMessage'),'Enter a valid HTTPS retailer website URL.');return}
  const payload={name:document.querySelector('#retailerName').value.trim(),market:document.querySelector('#retailerMarket').value,website_url:website};
  const {error}=await client.from('retailers').upsert(payload,{onConflict:'name,market'});
  if(error){message(document.querySelector('#retailerMessage'),'Could not save retailer. Check the details and try again.');return}
@@ -197,7 +197,7 @@ document.querySelector('#offerForm')?.addEventListener('submit',async e=>{
  const canonical=safeHttpUrl(document.querySelector('#offerCanonical').value.trim());
  const affiliateRaw=document.querySelector('#offerAffiliate').value.trim();
  const affiliate=affiliateRaw?safeHttpUrl(affiliateRaw):null;
- if(!canonical|| (affiliateRaw&&!affiliate)){message(msg,'Enter valid http or https URLs.');return}
+ if(!canonical|| (affiliateRaw&&!affiliate)){message(msg,'Enter valid HTTPS URLs.');return}
  const market=document.querySelector('#offerMarket').value;
  const retailerId=document.querySelector('#offerRetailer').value;
  const selectedRetailer=Array.from(document.querySelector('#offerRetailer').selectedOptions)[0];
