@@ -68,6 +68,8 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       <article><small>PUBLISHED ARTICLES</small><strong id="articlePublishedCount">—</strong></article>
       <article><small>ACTIVE REGIONAL OFFERS</small><strong id="activeOfferCount">—</strong></article>
       <article><small>OUTBOUND CLICKS</small><strong id="clickCount">—</strong></article>
+      <article><small>AFFILIATE CONVERSIONS</small><strong>Not connected</strong></article>
+      <article><small>COMMISSIONS / REVENUE</small><strong>Not connected</strong></article>
     </div>
     <p class="hint kpi-note">Outbound clicks measure visits sent to retailers—not purchases, commissions or revenue. Affiliate network reports remain the source of truth for earnings.</p>
   </section>
@@ -131,14 +133,16 @@ document.querySelector('#productForm')?.addEventListener('submit',async e=>{
 });
 async function loadOperations(){
  const set=(id,value)=>{const el=document.querySelector('#'+id);if(el)el.textContent=String(value)};
- const [retailers,products,articles,offers,clicks]=await Promise.all([
+ const [retailers,products,articles,articleTotal,articlePublished,offers,clicks]=await Promise.all([
   client.from('retailers').select('id,name,market,website_url,is_active').order('name').limit(100),
   client.from('products').select('id,name,status').order('name').limit(200),
   client.from('articles').select('id,title,slug,status,content_type,updated_at').order('updated_at',{ascending:false}).limit(30),
+  client.from('articles').select('id',{count:'exact',head:true}),
+  client.from('articles').select('id',{count:'exact',head:true}).eq('status','published'),
   client.from('product_offers').select('id,status',{count:'exact'}),
   client.from('affiliate_click_events').select('id',{count:'exact',head:true})
  ]);
- const fail=[retailers,products,articles,offers,clicks].find(x=>x.error);
+ const fail=[retailers,products,articles,articleTotal,articlePublished,offers,clicks].find(x=>x.error);
  if(fail){message(accessMessage,'Some studio records could not be loaded. Check permissions and refresh.');show(accessMessage,true);return}
  const fill=(id,items,label)=>{const el=document.querySelector('#'+id);if(!el)return;const old=el.value;el.replaceChildren(new Option('Choose '+label,''));for(const item of items||[])el.add(new Option(item.label,item.value));if(old)el.value=old};
  fill('offerProduct',(products.data||[]).filter(x=>x.status!=='archived').map(x=>({label:x.name,value:x.id})),'product');
@@ -149,8 +153,8 @@ async function loadOperations(){
  for(const item of retailers.data||[]){const row=document.createElement('article');row.className='record';const title=document.createElement('b');title.textContent=item.name;const meta=document.createElement('small');meta.textContent=item.market+' · '+(item.is_active?'active':'paused');const url=document.createElement('span');url.textContent=item.website_url;row.append(title,meta,url);rlist?.append(row)}
  const alist=document.querySelector('#articleList');alist?.replaceChildren();
  for(const item of articles.data||[]){const row=document.createElement('article');row.className='record';const title=document.createElement('b');title.textContent=item.title;const meta=document.createElement('small');meta.textContent=item.status.replace('_',' ')+' · '+item.content_type;const slug=document.createElement('span');slug.textContent='/journal/'+item.slug;row.append(title,meta,slug);alist?.append(row)}
- set('articleCount',articles.data?.length||0);
- set('articlePublishedCount',articles.data?.filter(x=>x.status==='published').length||0);
+ set('articleCount',articleTotal.count??'—');
+ set('articlePublishedCount',articlePublished.count??'—');
  set('activeOfferCount',offers.data?.filter(x=>x.status==='active').length||0);
  set('clickCount',clicks.count??'—');
 }
