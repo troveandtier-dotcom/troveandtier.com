@@ -54,7 +54,7 @@ async function loadDesk() {
   db.from('products').select('id',{count:'exact',head:true}),
   db.from('products').select('id',{count:'exact',head:true}).eq('status','published')
  ]);
- $('total').textContent = total.count ?? '—'; $('published').textContent = published.count ?? '—';
+ $('total').textContent = String(total.count ?? '—'); $('published').textContent = String(published.count ?? '—');
  $('recent').replaceChildren();
  for(const item of items || []) { const p=document.createElement('p'); p.textContent=item.name+' · '+item.status.replace('_',' '); $('recent').append(p); }
  if(!items?.length) $('recent').textContent='No products added yet.';
@@ -72,7 +72,7 @@ $('logout').addEventListener('click',async()=>{await db.auth.signOut();await che
 $('name').addEventListener('input',()=>{if(!$('slug')?.dataset.edited){}});
 $('productForm').addEventListener('submit',async e=>{
  e.preventDefault(); const button=$('publish'); button.disabled=true; button.textContent='Publishing…'; say('formMsg','Saving product and affiliate link…');
- const canonical=https($('canonical').value.trim()), affiliate=https($('affiliate').value.trim()), imageRaw=$('image').value.trim(), image=imageRaw?https(imageRaw):null, imageFile=$('imageFile').files[0];
+ const canonical=https($('canonical').value.trim()), affiliate=https($('affiliate').value.trim()), imageRaw=$('image').value.trim(), image=imageRaw?https(imageRaw):null, imageFile=$('imageFile').files?.[0];
  if(!canonical||!affiliate||(imageRaw&&!image)||(imageRaw&&imageFile)||((imageRaw||imageFile)&&!$('imageRights').value)){say('formMsg','Use valid HTTPS links for the retailer, affiliate link and image.');button.disabled=false;button.textContent='Publish product';return;}
  if(imageFile && (!['image/jpeg','image/png','image/webp','image/avif'].includes(imageFile.type) || imageFile.size > 5*1024*1024)){say('formMsg','Choose a JPEG, PNG, WebP or AVIF image under 5 MB.');button.disabled=false;button.textContent='Publish product';return;}
  const market=$('market').value as 'US'|'UK'|'CA', retailerName=$('retailer').value.trim(), now=new Date().toISOString();
@@ -91,7 +91,7 @@ $('productForm').addEventListener('submit',async e=>{
    name,slug,brand:$('brand').value.trim()||null,category_id:$('category').value,
    summary:$('summary').value.trim(),description:$('summary').value.trim(),
    image_url:imageUrl,image_credit:$('imageCredit').value.trim()||null,
-   image_rights_status:image?$('imageRights').value:'unverified',evidence_type:'editorial_research',
+   image_rights_status:imageUrl?$('imageRights').value:'unverified',evidence_type:'editorial_research',
    evidence_notes:'Product listing supplied by the Trove & Tier editor.',
    pros:lines('pros'),limitations:lines('limits'),status:'published',published_at:now,last_verified_at:now
   }).select('id').single();
