@@ -38,7 +38,8 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 <script>
 import { supabase } from '../../lib/supabase';
 const db = supabase!;
-type FieldElement = HTMLInputElement & HTMLSelectElement & HTMLTextAreaElement & HTMLElement;\nconst $ = (id: string) => document.getElementById(id) as FieldElement;
+type FieldElement = HTMLInputElement & HTMLSelectElement & HTMLTextAreaElement & HTMLElement;
+const $ = (id: string) => document.getElementById(id) as FieldElement;
 const show = (id: string, yes: boolean) => { $(id).hidden = !yes; };
 const say = (id: string, value: string) => { $(id).textContent = value; };
 const lines = (id: string): string[] => $(id).value.split('\n').map(x => x.trim()).filter(Boolean);
