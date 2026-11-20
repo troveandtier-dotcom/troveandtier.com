@@ -39,8 +39,8 @@ async function showProducts(){
   .eq('status','published').eq('category.slug',slug);
  if(loading)loading.hidden=true;
  if(error){console.error('Could not load published products:',error.message);return;}
- type Offer = { id:string; market:string; affiliate_url:string|null; canonical_url:string; status:string; retailer:{name:string;is_active:boolean}|null };
- const products=((data||[]) as Array<{id:string;name:string;brand:string|null;summary:string;image_url:string|null;pros:string[];offers:Offer[]}>).map(p=>({...p,offers:(p.offers||[]).filter(o=>o.status==='active'&&o.retailer?.is_active)})).filter(p=>p.offers.length);
+ type Offer = { id:string; market:string; affiliate_url:string|null; canonical_url:string; status:string; retailer:{name:string;is_active:boolean}|Array<{name:string;is_active:boolean}>|null };
+ const products=((data||[]) as unknown as Array<{id:string;name:string;brand:string|null;summary:string;image_url:string|null;pros:string[];offers:Offer[]}>).map(p=>({...p,offers:(p.offers||[]).map(o=>({...o,retailer:Array.isArray(o.retailer)?o.retailer[0]??null:o.retailer})).filter(o=>o.status==='active'&&o.retailer?.is_active)})).filter(p=>p.offers.length);
  if(!products.length)return;
  section.hidden=false;
  for(const product of products){
