@@ -2,8 +2,17 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import Header from '../../components/Header.astro';
 import { articles } from '../../data/site';
-export function getStaticPaths(){return articles.map(article=>({params:{slug:article.slug},props:{article}}))}
-const { article } = Astro.props;
+import { getPublishedArticles, markdownToSafeHtml } from '../../lib/public-content';
+export async function getStaticPaths(){
+ const published = await getPublishedArticles();
+ const fallback = articles.filter(item => !published.some(entry => entry.slug === item.slug));
+ return [
+  ...published.map(article => ({params:{slug:article.slug},props:{article,fromDatabase:true}})),
+  ...fallback.map(article => ({params:{slug:article.slug},props:{article,fromDatabase:false}}))
+ ];
+}
+const { article, fromDatabase } = Astro.props;
+const safeBodyHtml = fromDatabase ? markdownToSafeHtml(article.body_markdown || '') : null;
 const sections: Record<string,{intro:string;steps:string[];close:string}> = {
  'small-kitchen-planning': {intro:'Before choosing containers, racks or organizers, understand what your kitchen needs to do. A useful plan starts with your habits, the space you actually have and the things you reach for most.',steps:['Notice the friction points. Which cupboard is hard to reach? Where do everyday items collect? What interrupts meal preparation?','Measure the usable space. Record shelf width, depth and height, note hinges and obstructions, and check how doors and drawers open.','Group by routine. Keep frequently used cooking, preparation and serving items close to the places where those tasks happen.','Choose a system only after the problem is clear. A product should solve a specific access, visibility or capacity issue—not simply add another container.'],close:'The best small-kitchen solution is the one that makes your own routine easier without making the room harder to maintain.'},
  'under-sink-storage': {intro:'The space beneath a sink can be awkward: plumbing, shut-off valves and cleaning supplies all compete for room. Start by understanding those constraints before choosing a storage system.',steps:['Empty the cabinet and check for signs of leaks or moisture before organizing. Address maintenance issues first.','Measure around the plumbing, not just the cabinet walls. Record the clear width, depth and height at more than one point.','Group supplies by use and keep hazardous household products safely away from children and pets.','Look for accessible, removable storage that leaves valves and plumbing easy to inspect. Check dimensions and material suitability before buying.'],close:'A good under-sink setup keeps essentials visible while leaving the plumbing accessible.'},
@@ -16,13 +25,14 @@ const body=sections[article.slug];
 <main class="wrap">
   <article class="story">
     <a class="back" href="/journal">← Back to the journal</a>
-    <p class="eyebrow">{article.category} / {article.status} / {article.read}</p>
+    <p class="eyebrow">{(typeof article.category === 'object' ? article.category?.name : article.category) || 'Home & Living'} / {fromDatabase ? article.content_type : article.status} / {fromDatabase ? 'Editorial' : article.read}</p>
     <h1>{article.title}</h1><p class="dek">{article.excerpt}</p>
     <div class="story-rule"><span>TROVE &amp; TIER</span><span>THOUGHTFUL FINDS. BETTER LIVING.</span></div>
-    <div class="story-body"><p>{body.intro}</p><h2>A practical place to begin</h2><ol>{body.steps.map(step=><li>{step}</li>)}</ol><h2>Keep the goal simple</h2><p>{body.close}</p><aside><strong>Our editorial approach</strong><p>This guide offers general home-organization ideas. Product specifications, prices and availability are not asserted here. When we recommend specific products, we will identify the market, retailer and date the details were checked.</p><a href="/how-we-choose">How we choose recommendations ↗</a></aside></div>
+    <div class="story-body">{fromDatabase ? <div class="cms-body" set:html={safeBodyHtml} /> : <><p>{body.intro}</p><h2>A practical place to begin</h2><ol>{body.steps.map(step=><li>{step}</li>)}</ol><h2>Keep the goal simple</h2><p>{body.close}</p></>}<aside><strong>Our editorial approach</strong><p>This guide offers general home-organization ideas. Product specifications, prices and availability are not asserted here. When we recommend specific products, we will identify the market, retailer and date the details were checked.</p><a href="/how-we-choose">How we choose recommendations ↗</a></aside></div>
   </article>
 </main>
 <footer><a href="/">TROVE &amp; TIER</a><span>Thoughtful finds. Better living.</span></footer>
 </BaseLayout>
 <style>
+.cms-body :global(p){margin:0 0 1.25em}.cms-body :global(h2),.cms-body :global(h3){font:36px var(--font-display);margin:42px 0 14px;color:var(--color-charcoal)}.cms-body :global(ul),.cms-body :global(ol){padding-left:24px}.cms-body :global(li){padding:0 0 12px 8px}.cms-body :global(a){color:var(--color-deep-sage);text-decoration:underline}.cms-body :global(strong){font-weight:700}
 .wrap{max-width:1160px;margin:auto;padding:0 5%}.story{padding:55px 0 100px}.back{font-size:10px;text-decoration:none}.eyebrow{font-size:9px;letter-spacing:.17em;text-transform:uppercase;color:var(--color-deep-sage);margin-top:55px}h1{font:clamp(56px,8vw,96px)/.92 var(--font-display);letter-spacing:-.035em;max-width:900px;margin:20px 0}.dek{font-size:16px;line-height:1.8;max-width:700px;color:#62645b}.story-rule{display:flex;justify-content:space-between;border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:13px 0;margin:45px 0 55px;font-size:8px;letter-spacing:.15em}.story-body{max-width:720px;margin:auto;font-size:14px;line-height:1.95;color:#4f514a}.story-body>p:first-child{font:24px/1.5 var(--font-display);color:var(--color-charcoal)}.story-body h2{font:36px var(--font-display);margin:42px 0 14px;color:var(--color-charcoal)}.story-body li{padding:0 0 15px 8px}.story-body aside{background:#f2ede4;padding:24px;margin-top:45px;font-size:12px}.story-body aside p{margin:8px 0}.story-body aside a{color:var(--color-deep-sage)}footer{background:var(--color-charcoal);color:var(--color-ivory);padding:28px 5%;display:flex;justify-content:space-between;font-size:10px;letter-spacing:.12em}footer a{color:inherit;text-decoration:none}@media(max-width:600px){.story{padding-top:35px}.story-rule{gap:10px;font-size:7px}.story-body{font-size:13px}footer{flex-direction:column;gap:10px}}
