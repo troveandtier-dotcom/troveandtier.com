@@ -2,12 +2,15 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import Header from '../../components/Header.astro';
 import { articles } from '../../data/site';
+import { getPublishedArticles } from '../../lib/public-content';
+const published = await getPublishedArticles();
+const entries = published.length ? published.map(a => ({...a, category: a.category?.name || 'Home & Living', read: 'Editorial' })) : articles;
 ---
 <BaseLayout title="The Journal — Trove & Tier" description="Practical ideas, considered guides and useful perspectives for better living.">
 <Header />
 <main class="wrap">
   <header class="journal-head"><p class="eyebrow">The Trove &amp; Tier journal</p><h1>Ideas for a more<br/><em>considered home.</em></h1><p>Useful guidance for the spaces you live in, the things you bring into them and the routines that happen every day.</p></header>
-  <section class="article-list"><p class="eyebrow">The guides</p>{articles.map((article,i)=><article><span class="number">0{i+1}</span><div><small>{article.category} · {article.read}</small><h2><a href={'/journal/'+article.slug}>{article.title}</a></h2><p>{article.excerpt}</p></div><a class="read" href={'/journal/'+article.slug}>Read guide ↗</a></article>)}</section>
+  <section class="article-list"><p class="eyebrow">The guides</p>{entries.map((article,i)=><article><span class="number">0{i+1}</span><div><small>{article.category} · {article.read}</small><h2><a href={'/journal/'+article.slug}>{article.title}</a></h2><p>{article.excerpt}</p></div><a class="read" href={'/journal/'+article.slug}>Read guide ↗</a></article>)}</section>
 </main>
 <footer><a href="/">TROVE &amp; TIER</a><span>Thoughtful finds. Better living.</span></footer>
 </BaseLayout>
