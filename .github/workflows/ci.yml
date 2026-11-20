@@ -2,6 +2,9 @@ name: Manual site validation
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - feat/phase-1-editorial-site
 
 permissions:
   contents: read
@@ -27,3 +30,10 @@ jobs:
         run: npm run check
       - name: Build static site
         run: npm run build
+      - name: Save static site output for direct Cloudflare upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: trove-and-tier-dist
+          path: dist/
+          if-no-files-found: error
+          retention-days: 1
