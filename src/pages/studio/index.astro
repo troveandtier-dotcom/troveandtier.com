@@ -103,13 +103,13 @@ async function loadCategories(){
  for(const category of data||[]){const option=document.createElement('option');option.value=category.id;option.textContent=category.name;select.append(option)}
 }
 async function loadProducts(){
- const {data,error}=await client.from('products').select('id,name,slug,status,evidence_type,updated_at').order('updated_at',{ascending:false}).limit(50);
+ const [{data,error},total,published]=await Promise.all([client.from('products').select('id,name,slug,status,evidence_type,updated_at').order('updated_at',{ascending:false}).limit(50),client.from('products').select('id',{count:'exact',head:true}),client.from('products').select('id',{count:'exact',head:true}).eq('status','published')]);
  if(error){message(accessMessage,'Could not load product records. Check the database permissions and try again.');show(accessMessage,true);return}
  const list=document.querySelector('#productList'); if(!list)return;
  list.replaceChildren();
  const count=data?.length||0;
  const set=(id,value)=>{const el=document.querySelector('#'+id);if(el)el.textContent=String(value)};
- set('productCount',count);set('reviewCount',data?.filter(x=>x.status==='in_review').length||0);set('publishedCount',data?.filter(x=>x.status==='published').length||0);
+ set('productCount',total.count??'—');set('reviewCount',data?.filter(x=>x.status==='in_review').length||0);set('publishedCount',published.count??'—');
  if(!count){const p=document.createElement('p');p.className='hint';p.textContent='No product records yet. Start with a researched product and keep it in draft until the evidence is complete.';list.append(p);return}
  for(const item of data||[]){const row=document.createElement('article');row.className='record';const title=document.createElement('b');title.textContent=item.name;const meta=document.createElement('small');meta.textContent=item.status.replace('_',' ')+' · '+item.evidence_type.replaceAll('_',' ');const slug=document.createElement('span');slug.textContent='/'+item.slug;row.append(title,meta,slug);const action=nextStatus(item.status);if(action && (action.status!=='published' || currentRole==='owner')){const button=document.createElement('button');button.type='button';button.className='quiet';button.textContent=action.label;button.addEventListener('click',()=>changeStatus('products',item.id,action.status));row.append(button)}list.append(row)}
 }
@@ -150,16 +150,17 @@ async function changeOfferStatus(id,status){
 }
 async function loadOperations(){
  const set=(id,value)=>{const el=document.querySelector('#'+id);if(el)el.textContent=String(value)};
- const [retailers,products,articles,articleTotal,articlePublished,offers,clicks]=await Promise.all([
+ const [retailers,products,articles,articleTotal,articlePublished,offerRows,activeOfferTotal,clicks]=await Promise.all([
   client.from('retailers').select('id,name,market,website_url,is_active').order('name').limit(100),
   client.from('products').select('id,name,status').order('name').limit(200),
   client.from('articles').select('id,title,slug,status,content_type,updated_at').order('updated_at',{ascending:false}).limit(30),
   client.from('articles').select('id',{count:'exact',head:true}),
   client.from('articles').select('id',{count:'exact',head:true}).eq('status','published'),
-  client.from('product_offers').select('id,status,market,product:products(name,status),retailer:retailers(name,is_active)',{count:'exact'}),
+  client.from('product_offers').select('id,status,market,product:products(name,status),retailer:retailers(name,is_active)'),
+  client.from('product_offers').select('id',{count:'exact',head:true}).eq('status','active'),
   client.from('affiliate_click_events').select('id',{count:'exact',head:true})
  ]);
- const fail=[retailers,products,articles,articleTotal,articlePublished,offers,clicks].find(x=>x.error);
+ const fail=[retailers,products,articles,articleTotal,articlePublished,offerRows,activeOfferTotal,clicks].find(x=>x.error);
  if(fail){message(accessMessage,'Some studio records could not be loaded. Check permissions and refresh.');show(accessMessage,true);return}
  const fill=(id,items,label)=>{const el=document.querySelector('#'+id);if(!el)return;const old=el.value;el.replaceChildren(new Option('Choose '+label,''));for(const item of items||[])el.add(new Option(item.label,item.value));if(old)el.value=old};
  fill('offerProduct',(products.data||[]).filter(x=>x.status!=='archived').map(x=>({label:x.name,value:x.id})),'product');
@@ -169,12 +170,12 @@ async function loadOperations(){
  const rlist=document.querySelector('#retailerList');rlist?.replaceChildren();
  for(const item of retailers.data||[]){const row=document.createElement('article');row.className='record';const title=document.createElement('b');title.textContent=item.name;const meta=document.createElement('small');meta.textContent=item.market+' · '+(item.is_active?'active':'paused');const url=document.createElement('span');url.textContent=item.website_url;row.append(title,meta,url);rlist?.append(row)}
  const offerList=document.querySelector('#offerList');offerList?.replaceChildren();
- for(const offer of offers.data||[]){const row=document.createElement('article');row.className='record';const title=document.createElement('b');title.textContent=offer.product?.name||'Product offer';const meta=document.createElement('small');meta.textContent=offer.market+' · '+(offer.retailer?.name||'Retailer')+' · '+offer.status;row.append(title,meta);const canActivate=offer.product?.status==='published'&&offer.retailer?.is_active;const action=offer.status==='draft'&&canActivate?{status:'active',label:'Activate offer'}:offer.status==='active'?{status:'paused',label:'Pause offer'}:offer.status==='paused'?{status:'active',label:'Reactivate'}:null;if(action&&currentRole==='owner'){const button=document.createElement('button');button.type='button';button.className='quiet';button.textContent=action.label;button.addEventListener('click',()=>changeOfferStatus(offer.id,action.status));row.append(button)}offerList?.append(row)}
+ for(const offer of offerRows.data||[]){const row=document.createElement('article');row.className='record';const title=document.createElement('b');title.textContent=offer.product?.name||'Product offer';const meta=document.createElement('small');meta.textContent=offer.market+' · '+(offer.retailer?.name||'Retailer')+' · '+offer.status;row.append(title,meta);const canActivate=offer.product?.status==='published'&&offer.retailer?.is_active;const action=offer.status==='draft'&&canActivate?{status:'active',label:'Activate offer'}:offer.status==='active'?{status:'paused',label:'Pause offer'}:offer.status==='paused'?{status:'active',label:'Reactivate'}:null;if(action&&currentRole==='owner'){const button=document.createElement('button');button.type='button';button.className='quiet';button.textContent=action.label;button.addEventListener('click',()=>changeOfferStatus(offer.id,action.status));row.append(button)}offerList?.append(row)}
  const alist=document.querySelector('#articleList');alist?.replaceChildren();
  for(const item of articles.data||[]){const row=document.createElement('article');row.className='record';const title=document.createElement('b');title.textContent=item.title;const meta=document.createElement('small');meta.textContent=item.status.replace('_',' ')+' · '+item.content_type;const slug=document.createElement('span');slug.textContent='/journal/'+item.slug;row.append(title,meta,slug);const action=nextStatus(item.status);if(action && (action.status!=='published' || currentRole==='owner')){const button=document.createElement('button');button.type='button';button.className='quiet';button.textContent=action.label;button.addEventListener('click',()=>changeStatus('articles',item.id,action.status));row.append(button)}alist?.append(row)}
  set('articleCount',articleTotal.count??'—');
  set('articlePublishedCount',articlePublished.count??'—');
- set('activeOfferCount',offers.data?.filter(x=>x.status==='active').length||0);
+ set('activeOfferCount',activeOfferTotal.count??'—');
  set('clickCount',clicks.count??'—');
 }
 function safeHttpUrl(value){try{const u=new URL(value);return u.protocol==='https:'||u.protocol==='http:'?u.toString():null}catch{return null}}
