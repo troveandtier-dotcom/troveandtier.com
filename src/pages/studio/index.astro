@@ -28,6 +28,48 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       </form></section>
       <section class="panel records"><p class="eyebrow">THE WORK IN PROGRESS</p><h2>Product records</h2><div id="productList"><p class="hint">Sign in to load records.</p></div></section>
     </div>
+    <section class="section-head studio-section-head"><div><p class="eyebrow">COMMERCIAL OPERATIONS</p><h2>Retailers &amp; regional offers</h2></div><p class="hint">Keep each market's destination and affiliate URL separate. Offers remain drafts until checked.</p></section>
+    <div class="columns">
+      <section class="panel"><p class="eyebrow">RETAILER DIRECTORY</p><h2>Add a retailer</h2><form id="retailerForm">
+        <label>Retailer name<input id="retailerName" required maxlength="120" placeholder="Retailer name"/></label>
+        <label>Market<select id="retailerMarket"><option value="US">United States</option><option value="UK">United Kingdom</option><option value="CA">Canada</option></select></label>
+        <label>Official website<input id="retailerWebsite" type="url" required placeholder="https://example.com"/></label>
+        <button type="submit">Save retailer</button><p id="retailerMessage" class="message" role="status"></p>
+      </form><div id="retailerList" class="record-list"></div></section>
+      <section class="panel"><p class="eyebrow">REGIONAL PRODUCT LINKS</p><h2>Add an offer</h2><form id="offerForm">
+        <label>Product<select id="offerProduct" required><option value="">Choose product</option></select></label>
+        <label>Retailer<select id="offerRetailer" required><option value="">Choose retailer</option></select></label>
+        <label>Market<select id="offerMarket"><option value="US">United States · USD</option><option value="UK">United Kingdom · GBP</option><option value="CA">Canada · CAD</option></select></label>
+        <label>Retailer product URL<input id="offerCanonical" type="url" required placeholder="https://retailer.example/product"/></label>
+        <label>Affiliate URL (optional)<input id="offerAffiliate" type="url" placeholder="Approved tracked link"/></label>
+        <label>Price (optional)<input id="offerPrice" type="number" min="0" step="0.01" placeholder="Leave blank if not verified"/></label>
+        <label>Price checked date<input id="offerPriceDate" type="date"/></label>
+        <button type="submit">Save offer as draft</button><p id="offerMessage" class="message" role="status"></p>
+      </form><p class="hint">Never enter an estimated price. Confirm the retailer, market, destination and affiliate programme before activating an offer.</p></section>
+    </div>
+    <section class="section-head studio-section-head"><div><p class="eyebrow">EDITORIAL DESK</p><h2>Articles &amp; publishing pipeline</h2></div></section>
+    <div class="columns">
+      <section class="panel"><p class="eyebrow">NEW EDITORIAL DRAFT</p><h2>Create an article</h2><form id="articleForm">
+        <label>Article title<input id="articleTitle" required maxlength="180"/></label>
+        <label>URL slug<input id="articleSlug" required pattern="[a-z0-9]+(?:-[a-z0-9]+)*" maxlength="180"/></label>
+        <label>Content type<select id="articleType"><option value="guide">Practical guide</option><option value="editorial">Editorial feature</option><option value="roundup">Product roundup</option></select></label>
+        <label>Room / category<select id="articleCategory"><option value="">Choose a category</option></select></label>
+        <label>Short introduction<textarea id="articleExcerpt" rows="3" maxlength="350" required></textarea></label>
+        <label>Article body (Markdown)<textarea id="articleBody" rows="10" required placeholder="Write sourced, useful content. Keep evidence and personal testing clearly distinguished."></textarea></label>
+        <label>SEO title<input id="articleSeoTitle" maxlength="180"/></label>
+        <label>SEO description<textarea id="articleSeoDescription" rows="2" maxlength="300"></textarea></label>
+        <button type="submit">Save article as draft</button><p id="articleMessage" class="message" role="status"></p>
+      </form></section>
+      <section class="panel records"><p class="eyebrow">PUBLISHING PIPELINE</p><h2>Recent articles</h2><div id="articleList"><p class="hint">Your article drafts will appear here.</p></div></section>
+    </div>
+    <section class="section-head studio-section-head"><div><p class="eyebrow">MEASURE WHAT MATTERS</p><h2>Commercial &amp; editorial KPIs</h2></div><button id="refreshKpis" class="quiet">Refresh metrics</button></section>
+    <div class="stats stats-wide">
+      <article><small>ARTICLE RECORDS</small><strong id="articleCount">—</strong></article>
+      <article><small>PUBLISHED ARTICLES</small><strong id="articlePublishedCount">—</strong></article>
+      <article><small>ACTIVE REGIONAL OFFERS</small><strong id="activeOfferCount">—</strong></article>
+      <article><small>OUTBOUND CLICKS</small><strong id="clickCount">—</strong></article>
+    </div>
+    <p class="hint kpi-note">Outbound clicks measure visits sent to retailers—not purchases, commissions or revenue. Affiliate network reports remain the source of truth for earnings.</p>
   </section>
   <footer><span>TROVE &amp; TIER</span><span>Thoughtful finds. Better living.</span></footer>
 </main>
@@ -49,7 +91,7 @@ async function checkAccess(){
  if(!session){show(loginPanel,true);show(workspace,false);return}
  const {data:admin,error}=await client.from('admin_users').select('role').eq('user_id',session.user.id).maybeSingle();
  if(error||!admin){await client.auth.signOut();show(loginPanel,true);show(workspace,false);message(loginMessage,'This account is not on the approved editorial access list.');return}
- show(loginPanel,false);show(workspace,true);await loadCategories();await loadProducts();
+ show(loginPanel,false);show(workspace,true);await loadCategories();await loadProducts();await loadOperations();
 }
 async function loadCategories(){
  const {data,error}=await client.from('categories').select('id,name').eq('is_active',true).order('sort_order');
@@ -86,10 +128,80 @@ document.querySelector('#productForm')?.addEventListener('submit',async e=>{
  if(error){message(productMessage,error.code==='23505'?'That URL slug already exists. Choose a different one.':'Could not save: '+error.message);return}
  e.target.reset();const slug=document.querySelector('#productSlug');delete slug.dataset.edited;message(productMessage,'Saved as draft. It is not public.');await loadProducts();
 });
+async function loadOperations(){
+ const set=(id,value)=>{const el=document.querySelector('#'+id);if(el)el.textContent=String(value)};
+ const [retailers,products,articles,offers,clicks]=await Promise.all([
+  client.from('retailers').select('id,name,market,website_url,is_active').order('name').limit(100),
+  client.from('products').select('id,name,status').order('name').limit(200),
+  client.from('articles').select('id,title,slug,status,content_type,updated_at').order('updated_at',{ascending:false}).limit(30),
+  client.from('product_offers').select('id,status').limit(500),
+  client.from('affiliate_click_events').select('id',{count:'exact',head:true})
+ ]);
+ const fail=[retailers,products,articles,offers].find(x=>x.error);
+ if(fail){message(accessMessage,'Some studio records could not be loaded. Check permissions and refresh.');show(accessMessage,true);return}
+ const fill=(id,items,label)=>{const el=document.querySelector('#'+id);if(!el)return;const old=el.value;el.replaceChildren(new Option('Choose '+label,''));for(const item of items||[])el.add(new Option(item.label,item.value));if(old)el.value=old};
+ fill('offerProduct',(products.data||[]).filter(x=>x.status!=='archived').map(x=>({label:x.name,value:x.id})),'product');
+ fill('offerRetailer',(retailers.data||[]).filter(x=>x.is_active).map(x=>({label:x.name+' · '+x.market,value:x.id})),'retailer');
+ const categoryOptions=Array.from(document.querySelector('#productCategory')?.options||[]).slice(1).map(o=>({label:o.textContent,value:o.value}));
+ fill('articleCategory',categoryOptions,'category');
+ const rlist=document.querySelector('#retailerList');rlist?.replaceChildren();
+ for(const item of retailers.data||[]){const row=document.createElement('article');row.className='record';const title=document.createElement('b');title.textContent=item.name;const meta=document.createElement('small');meta.textContent=item.market+' · '+(item.is_active?'active':'paused');const url=document.createElement('span');url.textContent=item.website_url;row.append(title,meta,url);rlist?.append(row)}
+ const alist=document.querySelector('#articleList');alist?.replaceChildren();
+ for(const item of articles.data||[]){const row=document.createElement('article');row.className='record';const title=document.createElement('b');title.textContent=item.title;const meta=document.createElement('small');meta.textContent=item.status.replace('_',' ')+' · '+item.content_type;const slug=document.createElement('span');slug.textContent='/journal/'+item.slug;row.append(title,meta,slug);alist?.append(row)}
+ set('articleCount',articles.data?.length||0);
+ set('articlePublishedCount',articles.data?.filter(x=>x.status==='published').length||0);
+ set('activeOfferCount',offers.data?.filter(x=>x.status==='active').length||0);
+ set('clickCount',clicks.count??'—');
+}
+function safeHttpUrl(value){try{const u=new URL(value);return u.protocol==='https:'||u.protocol==='http:'?u.toString():null}catch{return null}}
+document.querySelector('#retailerForm')?.addEventListener('submit',async e=>{
+ e.preventDefault();message(document.querySelector('#retailerMessage'),'Saving retailer…');
+ const website=safeHttpUrl(document.querySelector('#retailerWebsite').value.trim());if(!website){message(document.querySelector('#retailerMessage'),'Enter a valid http or https website URL.');return}
+ const payload={name:document.querySelector('#retailerName').value.trim(),market:document.querySelector('#retailerMarket').value,website_url:website};
+ const {error}=await client.from('retailers').upsert(payload,{onConflict:'name,market'});
+ if(error){message(document.querySelector('#retailerMessage'),'Could not save retailer. Check the details and try again.');return}
+ e.target.reset();message(document.querySelector('#retailerMessage'),'Retailer saved.');await loadOperations();
+});
+document.querySelector('#offerMarket')?.addEventListener('change',e=>{
+ const currency={US:'USD',UK:'GBP',CA:'CAD'}[e.target.value];
+ const retailer=document.querySelector('#offerRetailer');if(retailer)retailer.value='';
+ const note=document.querySelector('#offerMessage');message(note,'Market currency: '+currency+'. Choose a matching retailer for this market.');
+});
+document.querySelector('#offerForm')?.addEventListener('submit',async e=>{
+ e.preventDefault();const msg=document.querySelector('#offerMessage');message(msg,'Saving offer as draft…');
+ const canonical=safeHttpUrl(document.querySelector('#offerCanonical').value.trim());
+ const affiliateRaw=document.querySelector('#offerAffiliate').value.trim();
+ const affiliate=affiliateRaw?safeHttpUrl(affiliateRaw):null;
+ if(!canonical|| (affiliateRaw&&!affiliate)){message(msg,'Enter valid http or https URLs.');return}
+ const market=document.querySelector('#offerMarket').value;
+ const retailerId=document.querySelector('#offerRetailer').value;
+ const selectedRetailer=Array.from(document.querySelector('#offerRetailer').selectedOptions)[0];
+ if(!retailerId||!selectedRetailer){message(msg,'Choose a retailer.');return}
+ if(!selectedRetailer.textContent.endsWith('· '+market)){message(msg,'Choose a retailer registered for the same market.');return}
+ const price=document.querySelector('#offerPrice').value;
+ const checked=document.querySelector('#offerPriceDate').value;
+ const payload={product_id:document.querySelector('#offerProduct').value,retailer_id:retailerId,market,currency:{US:'USD',UK:'GBP',CA:'CAD'}[market],canonical_url:canonical,affiliate_url:affiliate,price_amount:price===''?null:Number(price),price_checked_at:checked?new Date(checked+'T12:00:00Z').toISOString():null,status:'draft'};
+ if(!payload.product_id){message(msg,'Choose a product.');return}
+ const {error}=await client.from('product_offers').upsert(payload,{onConflict:'product_id,retailer_id,market'});
+ if(error){message(msg,'Could not save offer. Check that the product/retailer/market combination is unique.');return}
+ e.target.reset();message(msg,'Offer saved as draft. It is not publicly available.');await loadOperations();
+});
+document.querySelector('#articleTitle')?.addEventListener('input',e=>{
+ const slug=document.querySelector('#articleSlug');if(!slug.dataset.edited)slug.value=e.target.value.toLowerCase().normalize('NFKD').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+});
+document.querySelector('#articleSlug')?.addEventListener('input',e=>{e.target.dataset.edited='true'});
+document.querySelector('#articleForm')?.addEventListener('submit',async e=>{
+ e.preventDefault();const msg=document.querySelector('#articleMessage');message(msg,'Saving article draft…');
+ const payload={title:document.querySelector('#articleTitle').value.trim(),slug:document.querySelector('#articleSlug').value.trim(),content_type:document.querySelector('#articleType').value,category_id:document.querySelector('#articleCategory').value||null,excerpt:document.querySelector('#articleExcerpt').value.trim(),body_markdown:document.querySelector('#articleBody').value,seo_title:document.querySelector('#articleSeoTitle').value.trim()||null,seo_description:document.querySelector('#articleSeoDescription').value.trim()||null,status:'draft'};
+ const {error}=await client.from('articles').insert(payload);
+ if(error){message(msg,error.code==='23505'?'That article URL already exists. Choose another slug.':'Could not save article draft. Check required fields and try again.');return}
+ e.target.reset();delete document.querySelector('#articleSlug').dataset.edited;message(msg,'Article saved as a private draft.');await loadOperations();
+});
+document.querySelector('#refreshKpis')?.addEventListener('click',loadOperations);
 if(supabase){client.auth.onAuthStateChange(()=>{setTimeout(checkAccess,0)})}
 checkAccess();
 </script>
 <style>
-.studio{min-height:100vh;background:#f5f0e7;color:var(--color-charcoal);padding:0 5% 30px}.top{max-width:1200px;margin:auto;padding:25px 0;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}.brand{font:20px var(--font-display);letter-spacing:.12em;color:inherit;text-decoration:none}.brand span{color:var(--color-deep-sage)}.brand small{display:block;font:8px var(--font-body);letter-spacing:.2em;margin-top:4px}.exit{font-size:10px;color:var(--color-deep-sage)}.intro{max-width:1200px;margin:65px auto 45px}.eyebrow{font-size:9px;letter-spacing:.17em;color:var(--color-deep-sage)}h1{font:clamp(54px,8vw,88px)/.92 var(--font-display);margin:17px 0}h1 em{font-weight:400;color:var(--color-deep-sage)}.intro>p:last-child{font-size:13px;color:#67685f;line-height:1.8;max-width:530px}.panel{background:#fffdf8;padding:27px;border:1px solid #e2dbcf}.panel h2,.workspaceHead h2{font:34px var(--font-display);margin:10px 0 24px}.panel form{display:grid;gap:15px}.panel label{font-size:10px;display:grid;gap:7px;color:#55574f}.panel input,.panel textarea,.panel select{width:100%;box-sizing:border-box;border:1px solid #d9d2c6;background:#fffdf8;padding:12px;font:12px var(--font-body);color:#33352f;border-radius:0}.panel button,.columns button{background:var(--color-charcoal);color:#fff;padding:13px 18px;border:0;font-size:10px;letter-spacing:.08em;cursor:pointer}.notice{max-width:1200px;margin:0 auto 25px;background:#e7dfd1;padding:18px;font-size:12px;line-height:1.7}.notice p{margin-bottom:0}.workspaceHead{max-width:1200px;margin:35px auto 20px;display:flex;align-items:center;justify-content:space-between}.workspaceHead h2{margin-bottom:0}.quiet{background:transparent!important;color:var(--color-charcoal)!important;border:1px solid var(--line)!important}.stats{max-width:1200px;margin:20px auto;display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.stats article{padding:18px;background:#e7e1d6;display:grid;gap:10px}.stats small,.record small{font-size:8px;letter-spacing:.13em;text-transform:uppercase}.stats strong{font:32px var(--font-display)}.columns{max-width:1200px;margin:20px auto;display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start}.records{min-height:280px}.record{padding:15px 0;border-top:1px solid var(--line);display:grid;gap:6px}.record b{font:20px var(--font-display)}.record small{color:var(--color-deep-sage)}.record span,.hint,.message{font-size:10px;color:#696b62;line-height:1.7}.message{min-height:15px}.hint{margin-top:18px}.studio footer{max-width:1200px;margin:70px auto 0;padding-top:18px;border-top:1px solid var(--line);display:flex;justify-content:space-between;font-size:9px;letter-spacing:.15em}.studio a:focus-visible,.studio button:focus-visible,.studio input:focus-visible,.studio textarea:focus-visible,.studio select:focus-visible{outline:2px solid #5b6657;outline-offset:3px}@media(max-width:720px){.columns{grid-template-columns:1fr}.stats{grid-template-columns:1fr}.intro{margin-top:45px}.top{align-items:flex-start}.studio footer{flex-direction:column;gap:8px}}
+.studio{min-height:100vh;background:#f5f0e7;color:var(--color-charcoal);padding:0 5% 30px}.top{max-width:1200px;margin:auto;padding:25px 0;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}.brand{font:20px var(--font-display);letter-spacing:.12em;color:inherit;text-decoration:none}.brand span{color:var(--color-deep-sage)}.brand small{display:block;font:8px var(--font-body);letter-spacing:.2em;margin-top:4px}.exit{font-size:10px;color:var(--color-deep-sage)}.intro{max-width:1200px;margin:65px auto 45px}.eyebrow{font-size:9px;letter-spacing:.17em;color:var(--color-deep-sage)}h1{font:clamp(54px,8vw,88px)/.92 var(--font-display);margin:17px 0}h1 em{font-weight:400;color:var(--color-deep-sage)}.intro>p:last-child{font-size:13px;color:#67685f;line-height:1.8;max-width:530px}.panel{background:#fffdf8;padding:27px;border:1px solid #e2dbcf}.panel h2,.workspaceHead h2{font:34px var(--font-display);margin:10px 0 24px}.panel form{display:grid;gap:15px}.panel label{font-size:10px;display:grid;gap:7px;color:#55574f}.panel input,.panel textarea,.panel select{width:100%;box-sizing:border-box;border:1px solid #d9d2c6;background:#fffdf8;padding:12px;font:12px var(--font-body);color:#33352f;border-radius:0}.panel button,.columns button{background:var(--color-charcoal);color:#fff;padding:13px 18px;border:0;font-size:10px;letter-spacing:.08em;cursor:pointer}.notice{max-width:1200px;margin:0 auto 25px;background:#e7dfd1;padding:18px;font-size:12px;line-height:1.7}.notice p{margin-bottom:0}.workspaceHead{max-width:1200px;margin:35px auto 20px;display:flex;align-items:center;justify-content:space-between}.workspaceHead h2{margin-bottom:0}.quiet{background:transparent!important;color:var(--color-charcoal)!important;border:1px solid var(--line)!important}.stats{max-width:1200px;margin:20px auto;display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.stats article{padding:18px;background:#e7e1d6;display:grid;gap:10px}.stats small,.record small{font-size:8px;letter-spacing:.13em;text-transform:uppercase}.stats strong{font:32px var(--font-display)}.studio-section-head{max-width:1200px;margin:65px auto 20px;display:flex;gap:20px;align-items:end}.studio-section-head h2{font:34px var(--font-display);margin:8px 0}.studio-section-head>.hint{max-width:340px}.record-list{margin-top:20px}.stats-wide{grid-template-columns:repeat(4,1fr)}.kpi-note{max-width:1200px;margin:12px auto}.columns{max-width:1200px;margin:20px auto;display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start}.records{min-height:280px}.record{padding:15px 0;border-top:1px solid var(--line);display:grid;gap:6px}.record b{font:20px var(--font-display)}.record small{color:var(--color-deep-sage)}.record span,.hint,.message{font-size:10px;color:#696b62;line-height:1.7}.message{min-height:15px}.hint{margin-top:18px}.studio footer{max-width:1200px;margin:70px auto 0;padding-top:18px;border-top:1px solid var(--line);display:flex;justify-content:space-between;font-size:9px;letter-spacing:.15em}.studio a:focus-visible,.studio button:focus-visible,.studio input:focus-visible,.studio textarea:focus-visible,.studio select:focus-visible{outline:2px solid #5b6657;outline-offset:3px}@media(max-width:720px){.studio-section-head{align-items:start;flex-direction:column}.stats-wide{grid-template-columns:repeat(2,1fr)}.columns{grid-template-columns:1fr}.stats{grid-template-columns:1fr}.intro{margin-top:45px}.top{align-items:flex-start}.studio footer{flex-direction:column;gap:8px}}
 </style>
 </BaseLayout>
