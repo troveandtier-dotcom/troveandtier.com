@@ -1,0 +1,21 @@
+{
+  "name": "trove-and-tier",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "check": "astro check",
+    "format": "prettier --write ."
+  },
+  "dependencies": {
+    "@astrojs/check": "^0.9.4",
+    "astro": "^5.7.0",
+    "typescript": "^5.8.0"
+  },
+  "devDependencies": {
+    "prettier": "^3.5.0"
+  }
+}
