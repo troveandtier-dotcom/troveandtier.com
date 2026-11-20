@@ -135,11 +135,18 @@ document.querySelector('#productForm')?.addEventListener('submit',async e=>{
 function nextStatus(status){return ({draft:{status:'in_review',label:'Send to review'},in_review:{status:'approved',label:'Approve'},approved:{status:'published',label:'Publish'},published:{status:'archived',label:'Archive'}})[status]||null}
 async function changeStatus(table,id,status){
  if(status==='published' && currentRole!=='owner'){message(accessMessage,'Only the owner can publish.');show(accessMessage,true);return}
- const extra=status==='published'?{published_at:new Date().toISOString(),last_reviewed_at:new Date().toISOString()}:{};
+ const extra=status==='published'?{published_at:new Date().toISOString(),...(table==='articles'?{last_reviewed_at:new Date().toISOString()}:{})}:{};
  const {error}=await client.from(table).update({...extra,status,updated_at:new Date().toISOString()}).eq('id',id);
  if(error){message(accessMessage,'Could not update the editorial status. Check the record and permissions.');show(accessMessage,true);return}
  message(accessMessage,'Status updated to '+status.replace('_',' ')+'.');show(accessMessage,true);
  await loadProducts();await loadOperations();
+}
+async function changeOfferStatus(id,status){
+ if(currentRole!=='owner'){message(accessMessage,'Only the owner can activate or pause retailer offers.');show(accessMessage,true);return}
+ const payload={status,updated_at:new Date().toISOString(),...(status==='active'?{verified_at:new Date().toISOString()}:{})};
+ const {error}=await client.from('product_offers').update(payload).eq('id',id);
+ if(error){message(accessMessage,'Could not update the offer. Confirm its product and retailer are eligible.');show(accessMessage,true);return}
+ message(accessMessage,'Offer '+status+'.');show(accessMessage,true);await loadOperations();
 }
 async function loadOperations(){
  const set=(id,value)=>{const el=document.querySelector('#'+id);if(el)el.textContent=String(value)};
@@ -149,7 +156,7 @@ async function loadOperations(){
   client.from('articles').select('id,title,slug,status,content_type,updated_at').order('updated_at',{ascending:false}).limit(30),
   client.from('articles').select('id',{count:'exact',head:true}),
   client.from('articles').select('id',{count:'exact',head:true}).eq('status','published'),
-  client.from('product_offers').select('id,status',{count:'exact'}),
+  client.from('product_offers').select('id,status,market,product:products(name,status),retailer:retailers(name,is_active)',{count:'exact'}),
   client.from('affiliate_click_events').select('id',{count:'exact',head:true})
  ]);
  const fail=[retailers,products,articles,articleTotal,articlePublished,offers,clicks].find(x=>x.error);
@@ -161,6 +168,8 @@ async function loadOperations(){
  fill('articleCategory',categoryOptions,'category');
  const rlist=document.querySelector('#retailerList');rlist?.replaceChildren();
  for(const item of retailers.data||[]){const row=document.createElement('article');row.className='record';const title=document.createElement('b');title.textContent=item.name;const meta=document.createElement('small');meta.textContent=item.market+' · '+(item.is_active?'active':'paused');const url=document.createElement('span');url.textContent=item.website_url;row.append(title,meta,url);rlist?.append(row)}
+ const offerList=document.querySelector('#offerList');offerList?.replaceChildren();
+ for(const offer of offers.data||[]){const row=document.createElement('article');row.className='record';const title=document.createElement('b');title.textContent=offer.product?.name||'Product offer';const meta=document.createElement('small');meta.textContent=offer.market+' · '+(offer.retailer?.name||'Retailer')+' · '+offer.status;row.append(title,meta);const canActivate=offer.product?.status==='published'&&offer.retailer?.is_active;const action=offer.status==='draft'&&canActivate?{status:'active',label:'Activate offer'}:offer.status==='active'?{status:'paused',label:'Pause offer'}:offer.status==='paused'?{status:'active',label:'Reactivate'}:null;if(action&&currentRole==='owner'){const button=document.createElement('button');button.type='button';button.className='quiet';button.textContent=action.label;button.addEventListener('click',()=>changeOfferStatus(offer.id,action.status));row.append(button)}offerList?.append(row)}
  const alist=document.querySelector('#articleList');alist?.replaceChildren();
  for(const item of articles.data||[]){const row=document.createElement('article');row.className='record';const title=document.createElement('b');title.textContent=item.title;const meta=document.createElement('small');meta.textContent=item.status.replace('_',' ')+' · '+item.content_type;const slug=document.createElement('span');slug.textContent='/journal/'+item.slug;row.append(title,meta,slug);const action=nextStatus(item.status);if(action && (action.status!=='published' || currentRole==='owner')){const button=document.createElement('button');button.type='button';button.className='quiet';button.textContent=action.label;button.addEventListener('click',()=>changeStatus('articles',item.id,action.status));row.append(button)}alist?.append(row)}
  set('articleCount',articleTotal.count??'—');
