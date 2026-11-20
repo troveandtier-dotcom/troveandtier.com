@@ -40,7 +40,7 @@ Phase 1 — public editorial site, simple affiliate product catalogue and owner 
 - GitHub Actions remain manual-only; no Actions workflow was run for these preview deployments.
 
 ## Newly identified release blocker
-- The latest Cloudflare dependency installation reported **5 npm audit vulnerabilities: 1 low, 3 high and 1 critical**. The build still completed, but the affected packages and fix paths have not yet been identified. Do not run `npm audit fix --force` blindly; inspect the audit report and apply compatible, targeted dependency updates before production release.
+- The latest Cloudflare dependency installation reported **5 npm audit vulnerabilities: 1 low, 3 high and 1 critical**. The build still completed, but the affected packages and fix paths have not yet been identified. No `package-lock.json` is currently committed, so dependency resolution is not reproducible. Inspect the full audit report, create and commit a reviewed lockfile, and apply compatible, targeted dependency updates before production release. Do not run `npm audit fix --force` blindly.
 
 ## Remaining before launch
 - Inspect and remediate the npm audit findings; rerun the production build after the dependency changes.
