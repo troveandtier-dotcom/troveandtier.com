@@ -45,7 +45,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
         <label>Price (optional)<input id="offerPrice" type="number" min="0" step="0.01" placeholder="Leave blank if not verified"/></label>
         <label>Price checked date<input id="offerPriceDate" type="date"/></label>
         <button type="submit">Save offer as draft</button><p id="offerMessage" class="message" role="status"></p>
-      </form><p class="hint">Never enter an estimated price. Confirm the retailer, market, destination and affiliate programme before activating an offer.</p></section>
+      </form><div id="offerList" class="record-list"></div><p class="hint">Never enter an estimated price. Confirm the retailer, market, destination and affiliate programme before activating an offer.</p></section>
     </div>
     <section class="section-head studio-section-head"><div><p class="eyebrow">EDITORIAL DESK</p><h2>Articles &amp; publishing pipeline</h2></div></section>
     <div class="columns">
@@ -78,6 +78,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 <script>
 import { supabase } from '../../lib/supabase';
 const client = supabase!;
+let currentRole = null;
 const configNotice=document.querySelector('#configNotice');
 const loginPanel=document.querySelector('#loginPanel');
 const workspace=document.querySelector('#workspace');
@@ -93,7 +94,7 @@ async function checkAccess(){
  if(!session){show(loginPanel,true);show(workspace,false);return}
  const {data:admin,error}=await client.from('admin_users').select('role').eq('user_id',session.user.id).maybeSingle();
  if(error||!admin){await client.auth.signOut();show(loginPanel,true);show(workspace,false);message(loginMessage,'This account is not on the approved editorial access list.');return}
- show(loginPanel,false);show(workspace,true);await loadCategories();await loadProducts();await loadOperations();
+ currentRole=admin.role;show(loginPanel,false);show(workspace,true);await loadCategories();await loadProducts();await loadOperations();
 }
 async function loadCategories(){
  const {data,error}=await client.from('categories').select('id,name').eq('is_active',true).order('sort_order');
@@ -110,7 +111,7 @@ async function loadProducts(){
  const set=(id,value)=>{const el=document.querySelector('#'+id);if(el)el.textContent=String(value)};
  set('productCount',count);set('reviewCount',data?.filter(x=>x.status==='in_review').length||0);set('publishedCount',data?.filter(x=>x.status==='published').length||0);
  if(!count){const p=document.createElement('p');p.className='hint';p.textContent='No product records yet. Start with a researched product and keep it in draft until the evidence is complete.';list.append(p);return}
- for(const item of data||[]){const row=document.createElement('article');row.className='record';const title=document.createElement('b');title.textContent=item.name;const meta=document.createElement('small');meta.textContent=item.status.replace('_',' ')+' · '+item.evidence_type.replaceAll('_',' ');const slug=document.createElement('span');slug.textContent='/'+item.slug;row.append(title,meta,slug);list.append(row)}
+ for(const item of data||[]){const row=document.createElement('article');row.className='record';const title=document.createElement('b');title.textContent=item.name;const meta=document.createElement('small');meta.textContent=item.status.replace('_',' ')+' · '+item.evidence_type.replaceAll('_',' ');const slug=document.createElement('span');slug.textContent='/'+item.slug;row.append(title,meta,slug);const action=nextStatus(item.status);if(action && (action.status!=='published' || currentRole==='owner')){const button=document.createElement('button');button.type='button';button.className='quiet';button.textContent=action.label;button.addEventListener('click',()=>changeStatus('products',item.id,action.status));row.append(button)}list.append(row)}
 }
 document.querySelector('#loginForm')?.addEventListener('submit',async e=>{
  e.preventDefault();message(loginMessage,'Signing in…');
@@ -131,6 +132,15 @@ document.querySelector('#productForm')?.addEventListener('submit',async e=>{
  if(error){message(productMessage,error.code==='23505'?'That URL slug already exists. Choose a different one.':'Could not save: '+error.message);return}
  e.target.reset();const slug=document.querySelector('#productSlug');delete slug.dataset.edited;message(productMessage,'Saved as draft. It is not public.');await loadProducts();
 });
+function nextStatus(status){return ({draft:{status:'in_review',label:'Send to review'},in_review:{status:'approved',label:'Approve'},approved:{status:'published',label:'Publish'},published:{status:'archived',label:'Archive'}})[status]||null}
+async function changeStatus(table,id,status){
+ if(status==='published' && currentRole!=='owner'){message(accessMessage,'Only the owner can publish.');show(accessMessage,true);return}
+ const extra=status==='published'?{published_at:new Date().toISOString(),last_reviewed_at:new Date().toISOString()}:{};
+ const {error}=await client.from(table).update({...extra,status,updated_at:new Date().toISOString()}).eq('id',id);
+ if(error){message(accessMessage,'Could not update the editorial status. Check the record and permissions.');show(accessMessage,true);return}
+ message(accessMessage,'Status updated to '+status.replace('_',' ')+'.');show(accessMessage,true);
+ await loadProducts();await loadOperations();
+}
 async function loadOperations(){
  const set=(id,value)=>{const el=document.querySelector('#'+id);if(el)el.textContent=String(value)};
  const [retailers,products,articles,articleTotal,articlePublished,offers,clicks]=await Promise.all([
@@ -152,7 +162,7 @@ async function loadOperations(){
  const rlist=document.querySelector('#retailerList');rlist?.replaceChildren();
  for(const item of retailers.data||[]){const row=document.createElement('article');row.className='record';const title=document.createElement('b');title.textContent=item.name;const meta=document.createElement('small');meta.textContent=item.market+' · '+(item.is_active?'active':'paused');const url=document.createElement('span');url.textContent=item.website_url;row.append(title,meta,url);rlist?.append(row)}
  const alist=document.querySelector('#articleList');alist?.replaceChildren();
- for(const item of articles.data||[]){const row=document.createElement('article');row.className='record';const title=document.createElement('b');title.textContent=item.title;const meta=document.createElement('small');meta.textContent=item.status.replace('_',' ')+' · '+item.content_type;const slug=document.createElement('span');slug.textContent='/journal/'+item.slug;row.append(title,meta,slug);alist?.append(row)}
+ for(const item of articles.data||[]){const row=document.createElement('article');row.className='record';const title=document.createElement('b');title.textContent=item.title;const meta=document.createElement('small');meta.textContent=item.status.replace('_',' ')+' · '+item.content_type;const slug=document.createElement('span');slug.textContent='/journal/'+item.slug;row.append(title,meta,slug);const action=nextStatus(item.status);if(action && (action.status!=='published' || currentRole==='owner')){const button=document.createElement('button');button.type='button';button.className='quiet';button.textContent=action.label;button.addEventListener('click',()=>changeStatus('articles',item.id,action.status));row.append(button)}alist?.append(row)}
  set('articleCount',articleTotal.count??'—');
  set('articlePublishedCount',articlePublished.count??'—');
  set('activeOfferCount',offers.data?.filter(x=>x.status==='active').length||0);
