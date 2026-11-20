@@ -25,9 +25,9 @@ async function loadEdit(){
  const {data,error}=await supabase.from('products').select('id,name,brand,summary,image_url,pros,category:categories(name,slug),offers:product_offers(id,market,affiliate_url,canonical_url,status,retailer:retailers(name,is_active))').eq('status','published').order('published_at',{ascending:false});
  if(loading)loading.hidden=true;
  if(error){console.error('Could not load The Trove Edit:',error.message);return;}
- type Offer = { id:string; market:string; affiliate_url:string|null; canonical_url:string; status:string; retailer:{name:string;is_active:boolean}|null };
- type Product = { id:string; name:string; brand:string|null; summary:string; image_url:string|null; pros:string[]; category:{name:string;slug:string}|null; offers:Offer[] };
- const products=((data||[]) as Product[]).map(p=>({...p,offers:(p.offers||[]).filter(o=>o.status==='active'&&o.retailer?.is_active)})).filter(p=>p.offers.length);
+ type Offer = { id:string; market:string; affiliate_url:string|null; canonical_url:string; status:string; retailer:{name:string;is_active:boolean}|Array<{name:string;is_active:boolean}>|null };
+ type Product = { id:string; name:string; brand:string|null; summary:string; image_url:string|null; pros:string[]; category:{name:string;slug:string}|Array<{name:string;slug:string}>|null; offers:Offer[] };
+ const products=((data||[]) as unknown as Product[]).map(p=>({...p,category:Array.isArray(p.category)?p.category[0]??null:p.category,offers:(p.offers||[]).map(o=>({...o,retailer:Array.isArray(o.retailer)?o.retailer[0]??null:o.retailer})).filter(o=>o.status==='active'&&o.retailer?.is_active)})).filter(p=>p.offers.length);
  if(!products.length){const empty=node('p','hint','Our first product selections are being prepared. Please check back soon.');grid?.append(empty);return;}
  for(const product of products){
   const card=node('article','product-card');
