@@ -1,38 +1,36 @@
 # Trove & Tier build status
 
 ## Current phase
-Phase 1 — public website foundation.
+Phase 1 — simple affiliate product catalogue and publishing desk.
 
-## Verified account state (20 November 2026)
-- Cloudflare account authenticated as the Trove & Tier account. No Workers scripts and no zones were returned by the read-only account check.
-- Supabase project `lavvvwhxshfwambxklko`, region `eu-west-1`, status `ACTIVE_HEALTHY`. Public schema has no tables and there are no recorded migrations. Security and performance advisors returned no lints.
-- GitHub repository: `troveandtier-dotcom/troveandtier.com`, public, empty at initial inspection, default branch `main`. Work is isolated on `feat/phase-1-editorial-site`.
-- Netlify account is authenticated and currently has no sites.
-- No cloud resources, database objects, DNS records, or deployments were created during reconnaissance.
+## Implemented
+- Astro public website with home, room/category, The Trove Edit, journal, about, policy and contact pages.
+- Private owner/editor sign-in at `/studio`, restricted by the Supabase `admin_users` allowlist.
+- One-step product publishing form: product name, brand, category, description, optional image, image-use rights, retailer, market, canonical product URL and affiliate URL.
+- Optional image upload to the dedicated Supabase Storage bucket (`product-images`), limited to JPEG, PNG, WebP or AVIF up to 5 MB.
+- Published products load on matching category pages and The Trove Edit without rebuilding the site.
+- Affiliate links are direct tracked destinations with `rel="sponsored noopener noreferrer"`; affiliate disclosure is visible near product listings.
+- US, UK and Canada offers are stored separately with their corresponding currency.
+- Product and offer writes are restricted to authenticated users in the editor allowlist.
 
-## Implemented in this phase
-- Astro + TypeScript project foundation.
-- Design tokens and editorial homepage structure.
-- Responsive navigation, local region preference, room discovery, editorial sections and footer.
-- No live product claims, prices, affiliate URLs, newsletter capture or fabricated testimonials.
+## Supabase state verified on 20 November 2026
+- Project ref: `lavvvwhxshfwambxklko`; region: `eu-west-1`; project healthy at last check.
+- Nine active categories exist.
+- Editorial commerce tables exist and have RLS enabled.
+- Owner allowlist row exists for the owner-provided Auth UUID.
+- `product-images` bucket exists, public-read only for image delivery, 5 MB limit, supported image MIME types restricted; insert/update/delete policies require an authenticated editor.
+- A transaction using the owner identity successfully inserted a temporary retailer, product and regional offer, then rolled back. No test product was retained.
+- Security advisor currently reports one warning: leaked-password protection is disabled. No other security finding was returned in that check.
 
-## Not yet verified
-- npm installation, Astro type check, production build, browser QA, Lighthouse, accessibility automation, mobile device testing, deployment.
-- Supabase studio, schema, auth, affiliate redirect service, analytics, search backend and real editorial content.
-- Logo asset is supplied by the owner but has not yet been committed as a binary repository asset.
+## Not yet verified / remaining before launch
+- Fresh `npm run check` and `npm run build` on the current branch. The previous supplied Actions log used an older commit and is not evidence that this branch builds.
+- Browser test of the owner login, image upload, product publishing and public product display.
+- Logo image is not yet committed to the GitHub repository; the current header still uses a text mark.
+- Production hosting project and deployment have not been created. No public website URL is live.
+- The owner's Auth sign-in has not been tested from the website.
 
-## KPIs to instrument and review
-### Acquisition
-- Qualified sessions by country and channel.
-- Pinterest saves and outbound clicks; Facebook and Instagram reach and site clicks.
-### Engagement
-- Engaged sessions, article reads, category discovery, search use, returning visitors.
-### Commercial intent
-- Product-card interactions, retailer outbound clicks by product / market / source article.
-- Affiliate conversions and commissions imported from network reports (outbound clicks are not purchases).
-### Business development
-- Brand partnership enquiries, qualified enquiries, response rate and secured collaboration revenue.
-### Editorial quality
-- Published guides, source coverage, product-link verification age, correction rate and pages meeting accessibility/performance checks.
+## Deliberately deferred
+Advanced analytics, click/conversion dashboards, automated publishing, article CMS, affiliate redirect Worker, email capture and paid marketing automation. None is required to begin the first affiliate promotions once the public site and product flow are tested.
 
-Set numeric targets only after a baseline exists. Review weekly and at 30/60/90 days.
+## Release rule
+Do not announce the site as live or start sending promotional traffic until a production deployment and the basic product-publishing journey have been verified.
