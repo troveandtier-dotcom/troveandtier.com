@@ -16,7 +16,7 @@ const { article, fromDatabase } = Astro.props;
 const databaseArticle = fromDatabase ? article as import('../../lib/public-content').PublishedArticle : null;
 const staticArticle = fromDatabase ? null : article as typeof articles[number];
 const isUnderSink = staticArticle?.slug === 'under-sink-storage';
-const manuscriptMarkdown = isUnderSink ? underSinkManuscript.replace(/^---[\\s\\S]*?---\\s*/, '') : null;
+const manuscriptMarkdown = isUnderSink ? underSinkManuscript.replace(/^---[\s\S]*?---\s*/, '') : null;
 const safeBodyHtml = databaseArticle ? markdownToSafeHtml(databaseArticle.body_markdown || '') : manuscriptMarkdown ? markdownToSafeHtml(manuscriptMarkdown) : null;
 const categoryLabel = databaseArticle ? databaseArticle.category?.name : staticArticle?.category;
 const articleType = databaseArticle ? databaseArticle.content_type : 'Guide';
