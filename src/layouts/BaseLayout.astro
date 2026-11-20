@@ -3,6 +3,7 @@ import '../styles/tokens.css';
 const { title = 'Trove & Tier — Thoughtful finds. Better living.', description = 'Thoughtful home finds, practical ideas and considered essentials for better living.', noindex = false } = Astro.props;
 const canonicalOrigin = import.meta.env.PUBLIC_SITE_URL || 'https://trove-and-tier.pages.dev';
 const canonicalUrl = new URL(Astro.url.pathname, canonicalOrigin).toString();
+const noIndexPage = noindex || Astro.url.hostname !== new URL(canonicalOrigin).hostname;
 ---
 <!doctype html>
 <html lang="en">
@@ -11,7 +12,7 @@ const canonicalUrl = new URL(Astro.url.pathname, canonicalOrigin).toString();
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content={description} />
     <link rel="canonical" href={canonicalUrl} />
-    {noindex && <meta name="robots" content="noindex, nofollow" />}
+    {noIndexPage && <meta name="robots" content="noindex, nofollow" />}
     <meta name="theme-color" content="#E9E2D7" />
     <link rel="icon" type="image/png" href="/brand-mark.png" />
     <link rel="apple-touch-icon" href="/brand-mark.png" />
