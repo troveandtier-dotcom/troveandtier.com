@@ -1,12 +1,6 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "trove-and-tier",
-  "main": "src/worker.ts",
   "compatibility_date": "2026-11-20",
-  "assets": {
-    "directory": "./dist",
-    "binding": "ASSETS",
-    "not_found_handling": "404-page",
-    "run_worker_first": ["/go/*"]
-  }
+  "pages_build_output_dir": "./dist"
 }
