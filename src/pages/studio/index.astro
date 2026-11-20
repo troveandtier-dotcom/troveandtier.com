@@ -18,6 +18,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
         <label>Product name<input id="productName" required maxlength="160" placeholder="e.g. Stackable under-sink organizer"/></label>
         <label>URL slug<input id="productSlug" required pattern="[a-z0-9]+(?:-[a-z0-9]+)*" maxlength="160" placeholder="stackable-under-sink-organizer"/></label>
         <label>Brand<input id="productBrand" maxlength="120"/></label>
+        <label>Room / category<select id="productCategory"><option value="">Choose a category</option></select></label>
         <label>Editorial summary<textarea id="productSummary" rows="3" maxlength="500" placeholder="What problem does it solve?"></textarea></label>
         <label>Evidence basis<select id="evidenceType"><option value="editorial_research">Editorial research</option><option value="manufacturer_specification">Manufacturer specification</option><option value="independent_review">Independent review</option><option value="hands_on_test">Hands-on test (only if actually tested)</option></select></label>
         <label>Evidence notes<textarea id="evidenceNotes" rows="3" placeholder="Record the sources and what they support."></textarea></label>
@@ -48,7 +49,12 @@ async function checkAccess(){
  if(!session){show(loginPanel,true);show(workspace,false);return}
  const {data:admin,error}=await client.from('admin_users').select('role').eq('user_id',session.user.id).maybeSingle();
  if(error||!admin){await client.auth.signOut();show(loginPanel,true);show(workspace,false);message(loginMessage,'This account is not on the approved editorial access list.');return}
- show(loginPanel,false);show(workspace,true);await loadProducts();
+ show(loginPanel,false);show(workspace,true);await loadCategories();await loadProducts();
+}
+async function loadCategories(){
+ const {data,error}=await client.from('categories').select('id,name').eq('is_active',true).order('sort_order');
+ const select=document.querySelector('#productCategory');if(!select||error)return;
+ for(const category of data||[]){const option=document.createElement('option');option.value=category.id;option.textContent=category.name;select.append(option)}
 }
 async function loadProducts(){
  const {data,error}=await client.from('products').select('id,name,slug,status,evidence_type,updated_at').order('updated_at',{ascending:false}).limit(50);
@@ -75,7 +81,7 @@ document.querySelector('#productName')?.addEventListener('input',e=>{
 document.querySelector('#productSlug')?.addEventListener('input',e=>{e.target.dataset.edited='true'});
 document.querySelector('#productForm')?.addEventListener('submit',async e=>{
  e.preventDefault();message(productMessage,'Saving draft…');
- const payload={name:document.querySelector('#productName').value.trim(),slug:document.querySelector('#productSlug').value.trim(),brand:document.querySelector('#productBrand').value.trim()||null,summary:document.querySelector('#productSummary').value.trim(),evidence_type:document.querySelector('#evidenceType').value,evidence_notes:document.querySelector('#evidenceNotes').value.trim(),pros:lines('productPros'),limitations:lines('productLimits'),status:'draft'};
+ const payload={name:document.querySelector('#productName').value.trim(),slug:document.querySelector('#productSlug').value.trim(),brand:document.querySelector('#productBrand').value.trim()||null,category_id:document.querySelector('#productCategory').value||null,summary:document.querySelector('#productSummary').value.trim(),evidence_type:document.querySelector('#evidenceType').value,evidence_notes:document.querySelector('#evidenceNotes').value.trim(),pros:lines('productPros'),limitations:lines('productLimits'),status:'draft'};
  const {error}=await client.from('products').insert(payload);
  if(error){message(productMessage,error.code==='23505'?'That URL slug already exists. Choose a different one.':'Could not save: '+error.message);return}
  e.target.reset();const slug=document.querySelector('#productSlug');delete slug.dataset.edited;message(productMessage,'Saved as draft. It is not public.');await loadProducts();
