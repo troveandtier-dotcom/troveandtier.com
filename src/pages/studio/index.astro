@@ -38,11 +38,11 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 <script>
 import { supabase } from '../../lib/supabase';
 const db = supabase!;
-const $ = (id) => document.getElementById(id);
-const show = (id, yes) => { $(id).hidden = !yes; };
-const say = (id, value) => { $(id).textContent = value; };
-const lines = (id) => $(id).value.split('\n').map(x => x.trim()).filter(Boolean);
-function https(value) { try { const u = new URL(value); return u.protocol === 'https:' && !u.username && !u.password ? u : null; } catch { return null; } }
+type FieldElement = HTMLInputElement & HTMLSelectElement & HTMLTextAreaElement & HTMLElement;\nconst $ = (id: string) => document.getElementById(id) as FieldElement;
+const show = (id: string, yes: boolean) => { $(id).hidden = !yes; };
+const say = (id: string, value: string) => { $(id).textContent = value; };
+const lines = (id: string): string[] => $(id).value.split('\n').map(x => x.trim()).filter(Boolean);
+function https(value: string): URL | null { try { const u = new URL(value); return u.protocol === 'https:' && !u.username && !u.password ? u : null; } catch { return null; } }
 async function loadDesk() {
  const { data: cats, error } = await db.from('categories').select('id,name').eq('is_active',true).order('sort_order');
  if(error) { say('formMsg','Could not load categories. Refresh and try again.'); return; }
@@ -74,7 +74,7 @@ $('productForm').addEventListener('submit',async e=>{
  const canonical=https($('canonical').value.trim()), affiliate=https($('affiliate').value.trim()), imageRaw=$('image').value.trim(), image=imageRaw?https(imageRaw):null, imageFile=$('imageFile').files[0];
  if(!canonical||!affiliate||(imageRaw&&!image)||(imageRaw&&imageFile)||((imageRaw||imageFile)&&!$('imageRights').value)){say('formMsg','Use valid HTTPS links for the retailer, affiliate link and image.');button.disabled=false;button.textContent='Publish product';return;}
  if(imageFile && (!['image/jpeg','image/png','image/webp','image/avif'].includes(imageFile.type) || imageFile.size > 5*1024*1024)){say('formMsg','Choose a JPEG, PNG, WebP or AVIF image under 5 MB.');button.disabled=false;button.textContent='Publish product';return;}
- const market=$('market').value, retailerName=$('retailer').value.trim(), now=new Date().toISOString();
+ const market=$('market').value as 'US'|'UK'|'CA', retailerName=$('retailer').value.trim(), now=new Date().toISOString();
  try {
   let {data:retailer,error:retailerError}=await db.from('retailers').select('id,website_url').eq('name',retailerName).eq('market',market).maybeSingle();
   if(retailerError) throw retailerError;
@@ -97,15 +97,15 @@ $('productForm').addEventListener('submit',async e=>{
   if(productResult.error) throw productResult.error;
   const offerResult=await db.from('product_offers').insert({
    product_id:productResult.data.id,retailer_id:retailer.id,market,
-   currency:{US:'USD',UK:'GBP',CA:'CAD'}[market],canonical_url:canonical.toString(),
+   currency:market==='UK'?'GBP':market==='CA'?'CAD':'USD',canonical_url:canonical.toString(),
    affiliate_url:affiliate.toString(),status:'active',verified_at:now
   });
   if(offerResult.error) {
    await db.from('products').delete().eq('id',productResult.data.id);
    throw offerResult.error;
   }
-  e.target.reset(); say('formMsg','Published. Your product is now on its room/category page.'); await loadDesk();
- } catch(err) { if(uploadedPath) await db.storage.from('product-images').remove([uploadedPath]); say('formMsg',err?.message || 'Could not publish this product. Check the details and try again.'); }
+  (e.currentTarget as HTMLFormElement).reset(); say('formMsg','Published. Your product is now on its room/category page.'); await loadDesk();
+ } catch(err: unknown) { if(uploadedPath) await db.storage.from('product-images').remove([uploadedPath]); const message=typeof err==='object' && err!==null && 'message' in err ? String(err.message) : 'Could not publish this product. Check the details and try again.'; say('formMsg',message); }
  finally { button.disabled=false;button.textContent='Publish product'; }
 });
 if(db) db.auth.onAuthStateChange(()=>{check();});
