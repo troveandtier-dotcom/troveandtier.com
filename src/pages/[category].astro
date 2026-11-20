@@ -33,7 +33,7 @@ const loading = document.querySelector<HTMLElement>('#productLoading');
 const slug = section?.dataset.productCategory;
 const el = (tag: string, className = '', text?: string): HTMLElement => { const node=document.createElement(tag); if(className)node.className=className; if(text!==undefined)node.textContent=text; return node; };
 async function showProducts(){
- if(!supabase || !slug){ if(loading)loading.hidden=true; return; }
+ if(!supabase || !slug || !section || !grid){ if(loading)loading.hidden=true; return; }
  const {data,error}=await supabase.from('products')
   .select('id,name,brand,summary,image_url,pros,category:categories!inner(slug),offers:product_offers(id,market,affiliate_url,canonical_url,status,retailer:retailers(name,is_active))')
   .eq('status','published').eq('category.slug',slug);
@@ -53,7 +53,7 @@ async function showProducts(){
   card.append(el('p','evidence','Product details should be confirmed with the retailer.'));
   const links=el('div','market-offers');
   for(const offer of product.offers){const row=el('div','offer');row.append(el('b','',offer.market));const a=el('a','',offer.retailer?.name||'Shop retailer') as HTMLAnchorElement;a.href=offer.affiliate_url||offer.canonical_url;a.target='_blank';a.rel='sponsored noopener noreferrer';a.append(document.createTextNode(' ↗'));row.append(a);links.append(row);}
-  card.append(links);grid.append(card);
+  card.append(links);grid?.append(card);
  }
 }
 showProducts();
