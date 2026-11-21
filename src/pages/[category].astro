@@ -4,7 +4,10 @@ import Header from '../components/Header.astro';
 import { categories, articles, fullManuscriptSlugs } from '../data/site';
 import { getPublishedArticles, getPublishedProducts } from '../lib/public-content';
 export function getStaticPaths() {
-  return categories.map(category => ({ params: { category: category.slug }, props: { category } }));
+  // The Trove Edit has its own dedicated route at /the-edit.
+  return categories
+    .filter(category => category.slug !== 'the-edit')
+    .map(category => ({ params: { category: category.slug }, props: { category } }));
 }
 const { category } = Astro.props;
 const publishedArticles = await getPublishedArticles();
