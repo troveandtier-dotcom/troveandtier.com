@@ -79,7 +79,7 @@ Then protect the aisles. Professional planning guidelines do exist, but they are
 
 ## Cleaning supplies and household chemicals
 
-Kitchens are where cleaning products and food share a small space, so it's worth being deliberate. Indiana's Department of Environmental Management, which runs the state's household hazardous waste programme, advises never storing products with hazardous ingredients in food or beverage containers, and never storing them in the same area as food. The same guidance says to keep all hazardous products out of reach of children and pets, to lock poisons away from small children, and never to mix different household chemicals: chlorine bleach with ammonia or vinegar, for example, can create toxic fumes.
+Kitchens are where cleaning products and food share a small space, so it's worth being deliberate. [Indiana's Department of Environmental Management](https://www.in.gov/idem/health/household-hazardous-wastes/safe-storage-and-use-of-hazardous-household-products/), which runs the state's household hazardous waste programme, advises never storing products with hazardous ingredients in food or beverage containers, and never storing them in the same area as food. The same guidance says to keep all hazardous products out of reach of children and pets, to lock poisons away from small children, and never to mix different household chemicals: chlorine bleach with ammonia or vinegar, for example, can create toxic fumes.
 
 If the only available cupboard is the one under the sink, our guide to [thinking through under-sink storage](/journal/under-sink-storage/) deals with separating and securing things sensibly in a space that has its own moisture problems.
 
