@@ -225,12 +225,10 @@ A home does not need permanent fixtures in every corner to feel organized. It ne
 
 ---
 
-## Editorial source notes
+## Sources and further guidance
 
 - [3M Command US product FAQs](https://www.command.com/3M/en_US/command/contact-us/faqs/) — surface suitability, preparation, product-specific load guidance and removal.
 - [3M Command UK application guidance](https://command.3m.co.uk/3M/en_GB/command-gb/how-to/) — UK-specific application instructions and cautions.
 - [Shelter England: Making improvements to your rented home](https://england.shelter.org.uk/housing_advice/repairs/making_improvements_to_your_rented_home) — permission and written-agreement context for England.
 - [Health Canada: Furniture, appliance and television tip-overs](https://www.canada.ca/en/health-canada/services/household-products/furniture-appliance-television-tip-overs.html) — furniture stability, anchoring and child safety.
 - [US CPSC: Anchor It!](https://www.cpsc.gov/Safety-Education/Safety-Education-Centers/AnchorItgov) — furniture and television tip-over prevention.
-
-**Editorial boundary:** This guide explains selection and safety considerations. It does not claim that a particular product has been tested by Trove & Tier, guarantee damage-free removal, provide legal advice or establish universal load limits.
