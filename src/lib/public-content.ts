@@ -55,7 +55,7 @@ export function markdownToSafeHtml(markdown: string): string {
     value = value.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>').replace(/\*(.+?)\*/g, '<em>$1</em>');
     value = value.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_m, label, target) => {
       const decoded = String(target).replaceAll('&amp;', '&');
-      if ((!decoded.startsWith('/') || decoded.startsWith('//')) && !/^https?:\/\//i.test(decoded)) return label;
+      if ((!decoded.startsWith('/') || decoded.startsWith('//')) && !/^https:\/\//i.test(decoded)) return label;
       return '<a href="' + escapeHtml(decoded) + '">' + label + '</a>';
     });
     return value;

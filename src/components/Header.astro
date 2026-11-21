@@ -37,11 +37,11 @@ const links = [
     try {
       const saved = localStorage.getItem('tt-region');
       if (saved && ['US','UK','CA'].includes(saved)) region.value = saved;
-      region.addEventListener('change', () => {
-        try { localStorage.setItem('tt-region', region.value); } catch { /* storage may be unavailable */ }
-        window.dispatchEvent(new CustomEvent('tt-region-change', { detail: { market: region.value } }));
-      });
     } catch { /* storage may be unavailable */ }
+    region.addEventListener('change', () => {
+      try { localStorage.setItem('tt-region', region.value); } catch { /* storage may be unavailable */ }
+      window.dispatchEvent(new CustomEvent('tt-region-change', { detail: { market: region.value } }));
+    });
   }
 </script>
 <style>
