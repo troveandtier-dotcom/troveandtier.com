@@ -93,7 +93,7 @@ $('productForm').addEventListener('submit',async e=>{
  const canonical=https($('canonical').value.trim()), affiliate=https($('affiliate').value.trim()), imageRaw=$('image').value.trim(), image=imageRaw?https(imageRaw):null, imageFile=$('imageFile').files?.[0];
  if(!canonical||!affiliate||(imageRaw&&!image)||(imageRaw&&imageFile)||((imageRaw||imageFile)&&!$('imageRights').value)){say('formMsg','Use valid HTTPS links for the retailer, affiliate link and image.');button.disabled=false;button.textContent='Publish product';return;}
  if(imageFile && (!['image/jpeg','image/png','image/webp','image/avif'].includes(imageFile.type) || imageFile.size > 5*1024*1024)){say('formMsg','Choose a JPEG, PNG, WebP or AVIF image under 5 MB.');button.disabled=false;button.textContent='Publish product';return;}
- const market=$('market').value as 'US'|'UK'|'CA', retailerName=$('retailer').value.trim(), now=new Date().toISOString();
+ const market=$('market').value as 'US'|'UK'|'CA', retailerName=$('retailer').value.trim();
  let uploadedPath: string | null = null;
  try {
   const name=$('name').value.trim(), slug=name.toLowerCase().normalize('NFKD').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')+'-'+crypto.randomUUID().slice(0,8);
