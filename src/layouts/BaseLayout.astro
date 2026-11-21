@@ -1,7 +1,7 @@
 ---
 import '../styles/tokens.css';
 const { title = 'Trove & Tier — Thoughtful finds. Better living.', description = 'Thoughtful home finds, practical ideas and considered essentials for better living.', noindex = false } = Astro.props;
-const canonicalOrigin = import.meta.env.PUBLIC_SITE_URL || 'https://trove-and-tier.pages.dev';
+const canonicalOrigin = import.meta.env.PUBLIC_SITE_URL || 'https://troveandtier.com';
 const canonicalUrl = new URL(Astro.url.pathname, canonicalOrigin).toString();
 const noIndexPage = noindex || Astro.url.hostname !== new URL(canonicalOrigin).hostname;
 ---
