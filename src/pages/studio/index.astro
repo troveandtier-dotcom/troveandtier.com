@@ -108,7 +108,7 @@ $('productForm').addEventListener('submit',async e=>{
  } catch(err: unknown) { if(uploadedPath) await db.storage.from('product-images').remove([uploadedPath]); const message=typeof err==='object' && err!==null && 'message' in err ? String(err.message) : 'Could not publish this product. Check the details and try again.'; say('formMsg',message); }
  finally { button.disabled=false;button.textContent='Publish product'; }
 });
-if(db) db.auth.onAuthStateChange(()=>{check();});
+if(db) db.auth.onAuthStateChange((event)=>{if(event==='SIGNED_OUT') queueMicrotask(()=>{void check();});});
 check();
 </script>
 <style>
