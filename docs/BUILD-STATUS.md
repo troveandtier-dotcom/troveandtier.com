@@ -77,3 +77,13 @@ Advanced analytics, click/conversion dashboards, automated publishing, full edit
 
 ## Release rule
 Do not announce the site as live or send promotional traffic to new article routes until the npm audit findings are addressed, the latest preview build and browser checks have been verified, and production deployment is confirmed. Never describe branch-only work as published.
+
+## Latest editorial-site integration — 21 November 2026
+- Articles 5 and 9 are now registered in `src/data/site.ts` and rendered from their full Markdown manuscripts by `src/pages/journal/[slug].astro`.
+- New preview routes: `/journal/small-bathroom-storage/` and `/journal/no-drill-storage/`.
+- Both articles appear in the Journal index and their corresponding Bathroom and Small spaces category pages.
+- Article 5 production package saved at `docs/editorial/ARTICLE-05-PUBLICATION-PACKAGE.md`, including fresh visual-generation prompts, alt text, Pinterest copy, social captions and release checklist.
+- Cloudflare Pages preview deployment for commit `711b7961c3c7fd76e883d6d3e1d8bd1ebba13847`: `https://26bbc7ca.trove-and-tier.pages.dev/`. Build completed successfully; Cloudflare generated 26 static pages, including both new article routes.
+- The preview canonical origin now falls back to `https://troveandtier.com`. Preview builds use Cloudflare's injected `CF_PAGES_BRANCH` value to emit `noindex, nofollow` unless the deployment branch is `main`. The branch variable is documented by Cloudflare as available during Pages builds: https://developers.cloudflare.com/pages/configuration/build-configuration/
+- **Runtime verification still outstanding:** the browser-rendering service rate-limited further checks after the initial browser test. Earlier preview browser checks confirmed HTTP 200 for the new article and category routes and verified full manuscript rendering, but the final canonical/noindex correction still needs a fresh browser metadata check.
+- No changes were made to `main`; no production deployment or public launch was performed. Article 5 and Article 9 remain preview-integrated only.
