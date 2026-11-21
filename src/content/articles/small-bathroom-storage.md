@@ -99,18 +99,3 @@ Small rooms need short routines, or they stop happening. Once a week, wipe the s
 A small bathroom feels considered when nothing in it is fighting the room. That is a lower bar than it sounds, and a more useful one than tidiness: it means the towels can dry, the chemicals are out of reach, the valves are reachable, and the things you use every day are where your hand already goes.
 
 The measure of the room is not how much it stores. It is how little you have to think about it.
-
-<!-- INTERNAL LINK PLACEMENTS — pending publication.
-Live now: /journal/under-sink-storage/ (Article 2, in the plumbing section).
-To add on publication:
-- "Audit the room" -> /journal/small-kitchen-planning/ (Article 1) as the sibling planning guide, if a cross-room "start with an audit" link is wanted.
-- "Renters, and the honest limits of no-drill" -> /journal/no-drill-storage/ (Article 9) once published; this is the primary hand-off.
-- "Over the toilet" -> Article 6 only if a cart is used as overflow storage; add the verified canonical route when Article 6 is published.
-- End of article, "Keep reading" block -> Articles 1, 2, 9, 10 once all exist.
--->
-
-## Editorial and source notes
-
-The US Environmental Protection Agency's mold and moisture guidance informs the moisture-control discussion. Health Canada and RoSPA guidance informs household chemical storage and child/pet safety. Electrical guidance is jurisdiction-labelled: UK information is attributed to Electrical Safety First; US GFCI guidance is attributed to the National Electrical Code as adopted locally; the Ontario example is attributed to the Electrical Safety Authority and is not presented as a Canada-wide rule.
-
-This guide contains no product recommendations, prices, affiliate links or claims of product testing. Editorial judgments are distinguished from sourced technical guidance. No universal shelf load, fixing specification, shelf height or building-regulation requirement is asserted.
