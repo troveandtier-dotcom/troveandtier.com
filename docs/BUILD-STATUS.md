@@ -33,6 +33,9 @@ Phase 1 — public editorial site, simple affiliate product catalogue and owner 
 - The build-time Supabase diagnostic passed: URL present and valid; public key present and recognized. No secret key value is logged.
 - Latest build generated 24 static pages, including the homepage, Journal, Kitchen category, Article 2, Article 3, Article 4 and Product Studio routes.
 - The Pages build now ignores the incomplete Wrangler Pages configuration and uses the dashboard's deployment configuration; the separate redirect Worker config is unchanged.
+- Browser smoke test on the successful `a3b60e3b` preview returned HTTP 200 for `/`, `/journal/`, `/journal/pantry-organization-system/`, `/studio/`, `/the-edit/` and `/kitchen/`; page titles and H1s rendered and the browser reported no JavaScript/page errors. This is a route smoke test, not visual/mobile or authenticated workflow acceptance.
+- Added and applied `publish_product_with_offer(jsonb,jsonb,jsonb)`, a `SECURITY INVOKER` database function that writes retailer, product and regional offer atomically. Database privilege check confirms `anon` cannot execute it and `authenticated` can. Frontend Product Desk now calls this RPC instead of separate product/offer inserts.
+- New preview deployments are building for the atomic-publish migration and frontend change; latest frontend commit `cf753a0` is queued at the time of this update. Re-test the newest preview before accepting the change.
 - Latest deployment logs contain no `permission denied for function is_editor` or `Published article snapshot unavailable` messages. The public read-policy issue is therefore cleared at build/smoke-test level; browser behavior still needs validation.
 - Cloudflare deployment preview URL: `https://b49e9ccd.trove-and-tier.pages.dev`. Preview alias: `https://feat-phase-1-editorial-site.trove-and-tier.pages.dev`.
 - Supabase project ref: `lavvvwhxshfwambxklko`; region `eu-west-1`.
@@ -50,8 +53,8 @@ Phase 1 — public editorial site, simple affiliate product catalogue and owner 
 - End-to-end owner login and password sign-in from the website. The owner must enter the password privately; it should never be shared in chat.
 - End-to-end product image upload, publish, pause/resume, archive/restore and public product display.
 - Confirm the category-page nested Supabase relation filter works in the browser.
-- Fix the product publish flow's partial-failure handling: product and offer inserts are currently separate requests; if offer creation fails, compensating product deletion may itself fail under row-level security. Do not publish real products until this is replaced with an atomic database RPC/transaction or a safe draft-first recovery flow. Keep uploaded images until the product's final state is known.
-- Browser verification of preview pages is still pending. Cloudflare Browser Run returned a rate-limit response during this check; do not retry until the cooldown has elapsed.
+- Exercise the new atomic publish RPC through the authenticated browser flow, including successful publish, invalid retailer/domain, duplicate retailer, offer constraint failure and image-upload cleanup. Do not publish real catalogue entries until the full workflow passes.
+- Complete visual/mobile browser review, metadata/canonical checks, preview noindex behavior, internal links, table responsiveness and the nested Supabase category relation filter.
 - Confirm the final production build and deploy to the production branch only after preview acceptance.
 - Post-deployment verification on `https://trove-and-tier.pages.dev/`.
 
