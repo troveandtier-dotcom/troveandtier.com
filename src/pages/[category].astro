@@ -38,7 +38,6 @@ const section = document.querySelector<HTMLElement>('[data-product-category]');
 const grid = document.querySelector<HTMLElement>('#productGrid');
 const loading = document.querySelector<HTMLElement>('#productLoading');
 const slug = section?.dataset.productCategory;
-const el = (tag: string, className = '', text?: string): HTMLElement => { const node=document.createElement(tag); if(className)node.className=className; if(text!==undefined)node.textContent=text; return node; };
 type Offer = { id:string; market:'US'|'UK'|'CA'; affiliate_url:string|null; canonical_url:string; status:string; retailer:{name:string;is_active:boolean}|Array<{name:string;is_active:boolean}>|null };
 type Product = { id:string; name:string; brand:string|null; summary:string; image_url:string|null; pros:string[]; evidence_type:string; offers:Offer[] };
 const getMarket = (): 'US'|'UK'|'CA' => {
