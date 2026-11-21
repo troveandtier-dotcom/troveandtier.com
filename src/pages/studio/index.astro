@@ -89,12 +89,13 @@ async function check() {
 $('loginForm').addEventListener('submit',async e=>{e.preventDefault();say('loginMsg','Signing in…');const {error}=await db.auth.signInWithPassword({email:$('email').value,password:$('password').value});if(error){say('loginMsg','Sign-in failed. Check your email and password.');return;}say('loginMsg','');await check();});
 $('logout').addEventListener('click',async()=>{await db.auth.signOut();await check();});
 $('productForm').addEventListener('submit',async e=>{
- e.preventDefault(); const button=$('publish'); button.disabled=true; button.textContent='Publishing…'; say('formMsg','Saving product and affiliate link…');
+ e.preventDefault(); const form=e.currentTarget as HTMLFormElement; const button=$('publish'); button.disabled=true; button.textContent='Publishing…'; say('formMsg','Saving product and affiliate link…');
  const canonical=https($('canonical').value.trim()), affiliate=https($('affiliate').value.trim()), imageRaw=$('image').value.trim(), image=imageRaw?https(imageRaw):null, imageFile=$('imageFile').files?.[0];
  if(!canonical||!affiliate||(imageRaw&&!image)||(imageRaw&&imageFile)||((imageRaw||imageFile)&&!$('imageRights').value)){say('formMsg','Use valid HTTPS links for the retailer, affiliate link and image.');button.disabled=false;button.textContent='Publish product';return;}
  if(imageFile && (!['image/jpeg','image/png','image/webp','image/avif'].includes(imageFile.type) || imageFile.size > 5*1024*1024)){say('formMsg','Choose a JPEG, PNG, WebP or AVIF image under 5 MB.');button.disabled=false;button.textContent='Publish product';return;}
  const market=$('market').value as 'US'|'UK'|'CA', retailerName=$('retailer').value.trim();
  let uploadedPath: string | null = null;
+ let productSaved = false;
  try {
   const name=$('name').value.trim(), slug=name.toLowerCase().normalize('NFKD').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')+'-'+crypto.randomUUID().slice(0,8);
   let imageUrl: string | null = image?.toString() || null;
@@ -111,8 +112,9 @@ $('productForm').addEventListener('submit',async e=>{
    p_offer:{market,canonical_url:canonical.toString(),affiliate_url:affiliate.toString()}
   });
   if(publishError) throw publishError;
-  (e.currentTarget as HTMLFormElement).reset(); say('formMsg','Published. Your product is now on its room/category page.'); await loadDesk();
- } catch(err: unknown) { if(uploadedPath) await db.storage.from('product-images').remove([uploadedPath]); const message=typeof err==='object' && err!==null && 'message' in err ? String(err.message) : 'Could not publish this product. Check the details and try again.'; say('formMsg',message); }
+  productSaved = true;
+  form.reset(); say('formMsg','Published. Your product is now on its room/category page.'); await loadDesk();
+ } catch(err: unknown) { if(uploadedPath && !productSaved) await db.storage.from('product-images').remove([uploadedPath]); const message=typeof err==='object' && err!==null && 'message' in err ? String(err.message) : 'Could not publish this product. Check the details and try again.'; say('formMsg',message); }
  finally { button.disabled=false;button.textContent='Publish product'; }
 });
 if(db) db.auth.onAuthStateChange((event)=>{if(event==='SIGNED_OUT') queueMicrotask(()=>{void check();});});
