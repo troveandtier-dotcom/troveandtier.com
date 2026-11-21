@@ -89,36 +89,21 @@ $('productForm').addEventListener('submit',async e=>{
  const market=$('market').value as 'US'|'UK'|'CA', retailerName=$('retailer').value.trim(), now=new Date().toISOString();
  let uploadedPath: string | null = null;
  try {
-  let {data:retailer,error:retailerError}=await db.from('retailers').select('id,website_url').eq('name',retailerName).eq('market',market).maybeSingle();
-  if(retailerError) throw retailerError;
-  if(!retailer){
-   const home=new URL(canonical.origin).toString();
-   const result=await db.from('retailers').insert({name:retailerName,market,website_url:home,is_active:true}).select('id,website_url').single();
-   if(result.error) throw result.error; retailer=result.data;
-  }
-  const retailerHome=https(retailer.website_url);
-  if(!retailerHome || retailerHome.hostname!==canonical.hostname) throw new Error('The retailer product URL must belong to the same website as the retailer homepage. Check the retailer name or product URL.');
   const name=$('name').value.trim(), slug=name.toLowerCase().normalize('NFKD').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')+'-'+crypto.randomUUID().slice(0,8);
   let imageUrl: string | null = image?.toString() || null;
   if(imageFile){const ext={ 'image/jpeg':'jpg','image/png':'png','image/webp':'webp','image/avif':'avif' }[imageFile.type];uploadedPath=crypto.randomUUID()+'.'+ext;const upload=await db.storage.from('product-images').upload(uploadedPath,imageFile,{contentType:imageFile.type,cacheControl:'31536000',upsert:false});if(upload.error)throw upload.error;imageUrl=db.storage.from('product-images').getPublicUrl(uploadedPath).data.publicUrl;}
-  const productResult=await db.from('products').insert({
-   name,slug,brand:$('brand').value.trim()||null,category_id:$('category').value,
-   summary:$('summary').value.trim(),description:$('summary').value.trim(),
-   image_url:imageUrl,image_credit:$('imageCredit').value.trim()||null,
-   image_rights_status:imageUrl?$('imageRights').value:'unverified',evidence_type:'editorial_research',
-   evidence_notes:'Product listing supplied by the Trove & Tier editor.',
-   pros:lines('pros'),limitations:lines('limits'),status:'published',published_at:now,last_verified_at:now
-  }).select('id').single();
-  if(productResult.error) throw productResult.error;
-  const offerResult=await db.from('product_offers').insert({
-   product_id:productResult.data.id,retailer_id:retailer.id,market,
-   currency:market==='UK'?'GBP':market==='CA'?'CAD':'USD',canonical_url:canonical.toString(),
-   affiliate_url:affiliate.toString(),status:'active',verified_at:now
+  const {error:publishError}=await db.rpc('publish_product_with_offer',{
+   p_retailer:{name:retailerName,market,website_url:canonical.origin},
+   p_product:{
+    name,slug,brand:$('brand').value.trim()||null,category_id:$('category').value,
+    summary:$('summary').value.trim(),description:$('summary').value.trim(),
+    image_url:imageUrl,image_credit:$('imageCredit').value.trim()||null,
+    image_rights_status:imageUrl?$('imageRights').value:'unverified',
+    pros:lines('pros'),limitations:lines('limits')
+   },
+   p_offer:{market,canonical_url:canonical.toString(),affiliate_url:affiliate.toString()}
   });
-  if(offerResult.error) {
-   await db.from('products').delete().eq('id',productResult.data.id);
-   throw offerResult.error;
-  }
+  if(publishError) throw publishError;
   (e.currentTarget as HTMLFormElement).reset(); say('formMsg','Published. Your product is now on its room/category page.'); await loadDesk();
  } catch(err: unknown) { if(uploadedPath) await db.storage.from('product-images').remove([uploadedPath]); const message=typeof err==='object' && err!==null && 'message' in err ? String(err.message) : 'Could not publish this product. Check the details and try again.'; say('formMsg',message); }
  finally { button.disabled=false;button.textContent='Publish product'; }
