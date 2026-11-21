@@ -20,15 +20,17 @@ import { supabase } from '../lib/supabase';
 const grid=document.querySelector<HTMLElement>('#editGrid');
 const loading=document.querySelector<HTMLElement>('#editLoading');
 const node=(tag:string,cls:string,txt?:string)=>{const n=document.createElement(tag);if(cls)n.className=cls;if(txt!==undefined)n.textContent=txt;return n;};
-async function loadEdit(){
- if(!supabase){if(loading)loading.textContent='Product listings will appear here once the site database is connected.';return;}
- const {data,error}=await supabase.from('products').select('id,name,brand,summary,image_url,pros,evidence_type,category:categories(name,slug),offers:product_offers(id,market,affiliate_url,canonical_url,status,retailer:retailers(name,is_active))').eq('status','published').order('published_at',{ascending:false});
- if(loading)loading.hidden=true;
- if(error){console.error('Could not load The Trove Edit:',error.message);return;}
- type Offer = { id:string; market:string; affiliate_url:string|null; canonical_url:string; status:string; retailer:{name:string;is_active:boolean}|Array<{name:string;is_active:boolean}>|null };
- type Product = { id:string; name:string; brand:string|null; summary:string; image_url:string|null; pros:string[]; evidence_type:string; category:{name:string;slug:string}|Array<{name:string;slug:string}>|null; offers:Offer[] };
- const products=((data||[]) as unknown as Product[]).map(p=>({...p,category:Array.isArray(p.category)?p.category[0]??null:p.category,offers:(p.offers||[]).map(o=>({...o,retailer:Array.isArray(o.retailer)?o.retailer[0]??null:o.retailer})).filter(o=>o.status==='active'&&o.retailer?.is_active)})).filter(p=>p.offers.length);
- if(!products.length){const empty=node('p','hint','Our first product selections are being prepared. Please check back soon.');grid?.append(empty);return;}
+type Offer = { id:string; market:'US'|'UK'|'CA'; affiliate_url:string|null; canonical_url:string; status:string; retailer:{name:string;is_active:boolean}|Array<{name:string;is_active:boolean}>|null };
+type Product = { id:string; name:string; brand:string|null; summary:string; image_url:string|null; pros:string[]; evidence_type:string; category:{name:string;slug:string}|Array<{name:string;slug:string}>|null; offers:Offer[] };
+const getMarket=(): 'US'|'UK'|'CA'=>{try{const value=localStorage.getItem('tt-region');return value==='UK'||value==='CA'?value:'US';}catch{return 'US';}};
+let allProducts:Product[]=[];
+const node=(tag:string,cls:string,txt?:string)=>{const n=document.createElement(tag);if(cls)n.className=cls;if(txt!==undefined)n.textContent=txt;return n;};
+function renderEdit(market:'US'|'UK'|'CA'){
+ if(!grid)return;
+ grid.replaceChildren();
+ const products=allProducts.map(p=>({...p,category:Array.isArray(p.category)?p.category[0]??null:p.category,offers:(p.offers||[]).map(o=>({...o,retailer:Array.isArray(o.retailer)?o.retailer[0]??null:o.retailer})).filter(o=>o.market===market&&o.status==='active'&&o.retailer?.is_active)})).filter(p=>p.offers.length);
+ if(!allProducts.length){grid.append(node('p','hint','Our first product selections are being prepared. Please check back soon.'));return;}
+ if(!products.length){grid.append(node('p','hint',`There are no active product selections for ${market} yet. We will only feature items when their regional retailer details are ready.`));return;}
  for(const product of products){
   const card=node('article','product-card');
   if(product.image_url){const img=node('img','product-image') as HTMLImageElement;img.src=product.image_url;img.alt=product.name;img.loading='lazy';card.append(img);}
@@ -39,9 +41,18 @@ async function loadEdit(){
   if(product.evidence_type==='editorial_submission')card.append(node('p','evidence-note','Editorial listing · specifications not independently verified.'));
   if(product.pros?.length){const ul=node('ul','');for(const point of product.pros.slice(0,3))ul.append(node('li','',point));card.append(ul);}
   const offers=node('div','offers');
-  for(const offer of product.offers){const a=node('a','shop',product.offers.length>1?offer.market+' · '+(offer.retailer?.name||'Shop retailer')+' ↗':(offer.retailer?.name||'Shop retailer')+' ↗') as HTMLAnchorElement;a.href=offer.affiliate_url||offer.canonical_url;a.target='_blank';a.rel='sponsored noopener noreferrer';offers.append(a);}
-  card.append(offers);grid?.append(card);
+  for(const offer of product.offers){const a=node('a','shop',(offer.retailer?.name||'Shop retailer')+' ↗') as HTMLAnchorElement;a.href=offer.affiliate_url||offer.canonical_url;a.target='_blank';a.rel='sponsored noopener noreferrer';offers.append(a);}
+  card.append(offers);grid.append(card);
  }
+}
+async function loadEdit(){
+ if(!supabase){if(loading)loading.textContent='Product listings will appear here once the site database is connected.';return;}
+ const {data,error}=await supabase.from('products').select('id,name,brand,summary,image_url,pros,evidence_type,category:categories(name,slug),offers:product_offers(id,market,affiliate_url,canonical_url,status,retailer:retailers(name,is_active))').eq('status','published').order('published_at',{ascending:false});
+ if(loading)loading.hidden=true;
+ if(error){console.error('Could not load The Trove Edit:',error.message);if(grid)grid.append(node('p','hint','Product selections are temporarily unavailable. Please try again later.'));return;}
+ allProducts=(data||[]) as unknown as Product[];
+ renderEdit(getMarket());
+ window.addEventListener('tt-region-change',(event)=>{const market=(event as CustomEvent<{market?:string}>).detail?.market;if(market==='US'||market==='UK'||market==='CA')renderEdit(market);});
 }
 loadEdit();
 </script>

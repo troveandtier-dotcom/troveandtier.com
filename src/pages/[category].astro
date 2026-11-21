@@ -33,32 +33,46 @@ const grid = document.querySelector<HTMLElement>('#productGrid');
 const loading = document.querySelector<HTMLElement>('#productLoading');
 const slug = section?.dataset.productCategory;
 const el = (tag: string, className = '', text?: string): HTMLElement => { const node=document.createElement(tag); if(className)node.className=className; if(text!==undefined)node.textContent=text; return node; };
+type Offer = { id:string; market:'US'|'UK'|'CA'; affiliate_url:string|null; canonical_url:string; status:string; retailer:{name:string;is_active:boolean}|Array<{name:string;is_active:boolean}>|null };
+type Product = { id:string; name:string; brand:string|null; summary:string; image_url:string|null; pros:string[]; evidence_type:string; offers:Offer[] };
+const getMarket = (): 'US'|'UK'|'CA' => {
+ try { const value=localStorage.getItem('tt-region'); return value==='UK'||value==='CA'?value:'US'; } catch { return 'US'; }
+};
+const node = (tag:string, cls:string, txt?:string):HTMLElement => { const item=document.createElement(tag); if(cls)item.className=cls; if(txt!==undefined)item.textContent=txt; return item; };
+let allProducts:Product[]=[];
+function renderProducts(market:'US'|'UK'|'CA'){
+ if(!section||!grid)return;
+ grid.replaceChildren();
+ const products=allProducts.map(p=>({...p,offers:(p.offers||[]).map(o=>({...o,retailer:Array.isArray(o.retailer)?o.retailer[0]??null:o.retailer})).filter(o=>o.market===market&&o.status==='active'&&o.retailer?.is_active)})).filter(p=>p.offers.length);
+ if(!allProducts.length){section.hidden=true;return;}
+ section.hidden=false;
+ if(!products.length){grid.append(node('p','product-empty',`No active selections are listed for ${market} yet. We will only show a product when its retailer details and regional offer are ready.`));return;}
+ for(const product of products){
+  const card=node('article','product-card');
+  if(product.image_url){const img=node('img','product-image') as HTMLImageElement;img.src=product.image_url;img.alt=product.name;img.loading='lazy';card.append(img);}
+  card.append(node('p','product-brand',product.brand||'Trove & Tier selection'));
+  card.append(node('h3','',product.name));
+  card.append(node('p','',product.summary||'A considered find for the home.'));
+  if(product.pros?.length){const ul=node('ul','');for(const point of product.pros.slice(0,3))ul.append(node('li','',point));card.append(ul);}
+  card.append(node('p','evidence',product.evidence_type==='editorial_submission'?'Editorial listing · specifications not independently verified.':'Product details should be confirmed with the retailer.'));
+  const links=node('div','market-offers');
+  for(const offer of product.offers){const row=node('div','offer');row.append(node('b','',offer.market));const a=node('a','',offer.retailer?.name||'Shop retailer') as HTMLAnchorElement;a.href=offer.affiliate_url||offer.canonical_url;a.target='_blank';a.rel='sponsored noopener noreferrer';a.append(document.createTextNode(' ↗'));row.append(a);links.append(row);}
+  card.append(links);grid.append(card);
+ }
+}
 async function showProducts(){
- if(!supabase || !slug || !section || !grid){ if(loading)loading.hidden=true; return; }
+ if(!supabase||!slug||!section||!grid){if(loading)loading.hidden=true;return;}
  const {data,error}=await supabase.from('products')
   .select('id,name,brand,summary,image_url,pros,evidence_type,category:categories!inner(slug),offers:product_offers(id,market,affiliate_url,canonical_url,status,retailer:retailers(name,is_active))')
   .eq('status','published').eq('category.slug',slug);
  if(loading)loading.hidden=true;
  if(error){console.error('Could not load published products:',error.message);return;}
- type Offer = { id:string; market:string; affiliate_url:string|null; canonical_url:string; status:string; retailer:{name:string;is_active:boolean}|Array<{name:string;is_active:boolean}>|null };
- const products=((data||[]) as unknown as Array<{id:string;name:string;brand:string|null;summary:string;image_url:string|null;pros:string[];evidence_type:string;offers:Offer[]}>).map(p=>({...p,offers:(p.offers||[]).map(o=>({...o,retailer:Array.isArray(o.retailer)?o.retailer[0]??null:o.retailer})).filter(o=>o.status==='active'&&o.retailer?.is_active)})).filter(p=>p.offers.length);
- if(!products.length)return;
- section.hidden=false;
- for(const product of products){
-  const card=el('article','product-card');
-  if(product.image_url){const img=el('img','product-image') as HTMLImageElement;img.src=product.image_url;img.alt=product.name;img.loading='lazy';card.append(img);}
-  card.append(el('p','product-brand',product.brand||'Trove & Tier selection'));
-  card.append(el('h3','',product.name));
-  card.append(el('p','',product.summary||'A considered find for the home.'));
-  if(product.pros?.length){const ul=el('ul');for(const point of product.pros.slice(0,3))ul.append(el('li','',point));card.append(ul);}
-  card.append(el('p','evidence',product.evidence_type==='editorial_submission'?'Editorial listing · specifications not independently verified.':'Product details should be confirmed with the retailer.'));
-  const links=el('div','market-offers');
-  for(const offer of product.offers){const row=el('div','offer');row.append(el('b','',offer.market));const a=el('a','',offer.retailer?.name||'Shop retailer') as HTMLAnchorElement;a.href=offer.affiliate_url||offer.canonical_url;a.target='_blank';a.rel='sponsored noopener noreferrer';a.append(document.createTextNode(' ↗'));row.append(a);links.append(row);}
-  card.append(links);grid?.append(card);
- }
+ allProducts=(data||[]) as unknown as Product[];
+ renderProducts(getMarket());
+ window.addEventListener('tt-region-change',(event)=>{const market=(event as CustomEvent<{market?:string}>).detail?.market;if(market==='US'||market==='UK'||market==='CA')renderProducts(market);});
 }
 showProducts();
 </script>
 <style>
-.wrap{max-width:1160px;margin:auto;padding-left:5%;padding-right:5%}.intro{padding-top:90px;padding-bottom:80px;border-bottom:1px solid var(--line)}.eyebrow{font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--color-deep-sage)}h1{font:clamp(65px,9vw,112px)/.88 var(--font-display);letter-spacing:-.035em;margin:28px 0}h1 em{color:var(--color-deep-sage);font-weight:400}.intro>p:last-child{max-width:540px;font-size:14px;line-height:1.85;color:#62645b}.content{display:grid;grid-template-columns:.8fr 1.2fr;gap:12%;padding-top:70px;padding-bottom:100px}.content h2{font:42px/.98 var(--font-display);margin:14px 0 28px}.focus ul{list-style:none;padding:0;border-top:1px solid var(--line)}.focus li{padding:17px 0;border-bottom:1px solid var(--line);font-size:12px;display:flex;justify-content:space-between;gap:16px}.focus li span{color:var(--color-deep-sage)}.guide{display:block;padding:22px 0;border-top:1px solid var(--line);text-decoration:none}.guide small,.guide span{font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--color-deep-sage)}.guide h3,.empty h3{font:30px/1.05 var(--font-display);margin:10px 0}.guide p,.empty p{font-size:12px;line-height:1.75;color:#66685f}.empty{padding:24px;background:#f1ece3}.empty a{font-size:11px}.product-section{padding-top:0;padding-bottom:100px}.product-section>h2{font:42px var(--font-display);margin:12px 0 16px}.affiliate-note{font-size:11px;line-height:1.7;color:#62645b;max-width:650px;margin:0 0 24px}.product-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}.product-card{background:#f1ece3;padding:18px}.product-image{width:100%;aspect-ratio:4/3;object-fit:cover;display:block;margin-bottom:18px;background:#e7e1d6}.product-brand,.evidence{font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--color-deep-sage)}.product-card h3{font:27px/1.05 var(--font-display);margin:12px 0}.product-card>p:not(.product-brand):not(.evidence){font-size:12px;line-height:1.7;color:#62645b}.product-card ul{padding-left:18px;font-size:11px;line-height:1.7}.market-offers{border-top:1px solid var(--line);margin-top:16px}.offer{display:grid;grid-template-columns:35px 1fr;gap:5px;padding:12px 0;border-bottom:1px solid var(--line);font-size:11px}.offer a{font-size:11px;color:var(--color-deep-sage);text-decoration:underline}.product-loading{font-size:11px;color:#696b62;padding-bottom:35px}.foot{background:var(--color-charcoal);color:var(--color-ivory);padding:28px 5%;display:flex;justify-content:space-between;font-size:10px;letter-spacing:.12em}.foot a{text-decoration:none;color:inherit}@media(max-width:700px){.product-grid{grid-template-columns:1fr}.intro{padding-top:60px;padding-bottom:55px}.content{grid-template-columns:1fr;gap:55px}.foot{flex-direction:column;gap:10px}}
+.wrap{max-width:1160px;margin:auto;padding-left:5%;padding-right:5%}.intro{padding-top:90px;padding-bottom:80px;border-bottom:1px solid var(--line)}.eyebrow{font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--color-deep-sage)}h1{font:clamp(65px,9vw,112px)/.88 var(--font-display);letter-spacing:-.035em;margin:28px 0}h1 em{color:var(--color-deep-sage);font-weight:400}.intro>p:last-child{max-width:540px;font-size:14px;line-height:1.85;color:#62645b}.content{display:grid;grid-template-columns:.8fr 1.2fr;gap:12%;padding-top:70px;padding-bottom:100px}.content h2{font:42px/.98 var(--font-display);margin:14px 0 28px}.focus ul{list-style:none;padding:0;border-top:1px solid var(--line)}.focus li{padding:17px 0;border-bottom:1px solid var(--line);font-size:12px;display:flex;justify-content:space-between;gap:16px}.focus li span{color:var(--color-deep-sage)}.guide{display:block;padding:22px 0;border-top:1px solid var(--line);text-decoration:none}.guide small,.guide span{font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--color-deep-sage)}.guide h3,.empty h3{font:30px/1.05 var(--font-display);margin:10px 0}.guide p,.empty p{font-size:12px;line-height:1.75;color:#66685f}.empty{padding:24px;background:#f1ece3}.empty a{font-size:11px}.product-section{padding-top:0;padding-bottom:100px}.product-section>h2{font:42px var(--font-display);margin:12px 0 16px}.affiliate-note{font-size:11px;line-height:1.7;color:#62645b;max-width:650px;margin:0 0 24px}.product-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}.product-card{background:#f1ece3;padding:18px}.product-image{width:100%;aspect-ratio:4/3;object-fit:cover;display:block;margin-bottom:18px;background:#e7e1d6}.product-brand,.evidence{font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--color-deep-sage)}.product-card h3{font:27px/1.05 var(--font-display);margin:12px 0}.product-card>p:not(.product-brand):not(.evidence){font-size:12px;line-height:1.7;color:#62645b}.product-card ul{padding-left:18px;font-size:11px;line-height:1.7}.market-offers{border-top:1px solid var(--line);margin-top:16px}.offer{display:grid;grid-template-columns:35px 1fr;gap:5px;padding:12px 0;border-bottom:1px solid var(--line);font-size:11px}.offer a{font-size:11px;color:var(--color-deep-sage);text-decoration:underline}.product-loading{font-size:11px;color:#696b62;padding-bottom:35px}.product-empty{grid-column:1/-1;font-size:12px;line-height:1.7;color:#62645b;background:#f1ece3;padding:20px}.foot{background:var(--color-charcoal);color:var(--color-ivory);padding:28px 5%;display:flex;justify-content:space-between;font-size:10px;letter-spacing:.12em}.foot a{text-decoration:none;color:inherit}@media(max-width:700px){.product-grid{grid-template-columns:1fr}.intro{padding-top:60px;padding-bottom:55px}.content{grid-template-columns:1fr;gap:55px}.foot{flex-direction:column;gap:10px}}
 </style>
