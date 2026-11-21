@@ -19,25 +19,50 @@ export type PublishedProduct = {
     retailer: { name: string; website_url: string } | null }>;
 };
 
-export async function getPublishedArticles(): Promise<PublishedArticle[]> {
-  if (!db) return [];
-  const { data, error } = await db.from('articles')
-    .select('id,slug,title,excerpt,body_markdown,content_type,published_at,seo_title,seo_description,category:categories(name,slug)')
-    .eq('status', 'published').order('published_at', { ascending: false });
-  if (error) { console.error('Published article snapshot unavailable:', error.message); return []; }
-  return (data || []) as unknown as PublishedArticle[];
+let publishedArticlesSnapshot: Promise<PublishedArticle[]> | null = null;
+let publishedProductsSnapshot: Promise<PublishedProduct[]> | null = null;
+
+// Static generation calls these helpers from multiple routes. Share one consistent
+// Supabase snapshot per build instead of repeating the same public query per page.
+export function getPublishedArticles(): Promise<PublishedArticle[]> {
+  if (!db) return Promise.resolve([]);
+  if (!publishedArticlesSnapshot) {
+    publishedArticlesSnapshot = (async () => {
+      try {
+        const { data, error } = await db.from('articles')
+          .select('id,slug,title,excerpt,body_markdown,content_type,published_at,seo_title,seo_description,category:categories(name,slug)')
+          .eq('status', 'published').order('published_at', { ascending: false });
+        if (error) { console.error('Published article snapshot unavailable:', error.message); return []; }
+        return (data || []) as unknown as PublishedArticle[];
+      } catch (error) {
+        console.error('Published article snapshot request failed:', error);
+        return [];
+      }
+    })();
+  }
+  return publishedArticlesSnapshot;
 }
 
-export async function getPublishedProducts(): Promise<PublishedProduct[]> {
-  if (!db) return [];
-  const { data, error } = await db.from('products')
-    .select('id,slug,name,brand,summary,description,image_url,image_credit,pros,limitations,evidence_type,category:categories(name,slug),offers:product_offers(id,market,currency,canonical_url,affiliate_url,price_amount,price_checked_at,retailer:retailers(name,website_url))')
-    .eq('status', 'published');
-  if (error) { console.error('Published product snapshot unavailable:', error.message); return []; }
-  return (data || []).map((product: any) => ({
-    ...product,
-    offers: (product.offers || []).filter((offer: any) => offer && offer.retailer)
-  })) as PublishedProduct[];
+export function getPublishedProducts(): Promise<PublishedProduct[]> {
+  if (!db) return Promise.resolve([]);
+  if (!publishedProductsSnapshot) {
+    publishedProductsSnapshot = (async () => {
+      try {
+        const { data, error } = await db.from('products')
+          .select('id,slug,name,brand,summary,description,image_url,image_credit,pros,limitations,evidence_type,category:categories(name,slug),offers:product_offers(id,market,currency,canonical_url,affiliate_url,price_amount,price_checked_at,retailer:retailers(name,website_url))')
+          .eq('status', 'published');
+        if (error) { console.error('Published product snapshot unavailable:', error.message); return []; }
+        return (data || []).map((product: any) => ({
+          ...product,
+          offers: (product.offers || []).filter((offer: any) => offer && offer.retailer)
+        })) as PublishedProduct[];
+      } catch (error) {
+        console.error('Published product snapshot request failed:', error);
+        return [];
+      }
+    })();
+  }
+  return publishedProductsSnapshot;
 }
 
 export function marketFrom(value: string | undefined): 'US'|'UK'|'CA' {
