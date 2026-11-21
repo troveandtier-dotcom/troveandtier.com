@@ -1,7 +1,9 @@
 ---
-import BaseLayout from '../layouts/BaseLayout.astro'; import Header from '../components/Header.astro'; import { categories } from '../data/site';
+import BaseLayout from '../layouts/BaseLayout.astro'; import Header from '../components/Header.astro'; import { categories } from '../data/site'; import { getPublishedProducts } from '../lib/public-content';
+const publishedProducts = await getPublishedProducts();
+const hasActivePicks = publishedProducts.some(product => product.offers.length > 0);
 ---
-<BaseLayout title="The Trove Edit — Thoughtful home essentials" description="A considered edit of useful, beautiful home essentials.">
+<BaseLayout title="The Trove Edit — Thoughtful home essentials" description="A considered edit of useful, beautiful home essentials." noindex={!hasActivePicks}>
 <Header/>
 <main>
 <header class="wrap intro"><p class="eyebrow">The Trove Edit / Home essentials</p><h1>Useful by nature.<br/><em>Lovely by design.</em></h1><p>Practical home finds chosen to solve everyday problems, make better use of space and bring a little more ease to daily routines.</p></header>

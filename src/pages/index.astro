@@ -1,11 +1,10 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Header from '../components/Header.astro';
-import { articles } from '../data/site';
+import { articles, fullManuscriptSlugs } from '../data/site';
 import { getPublishedArticles } from '../lib/public-content';
 const publishedArticles = await getPublishedArticles();
-const featuredSlugs = ['small-kitchen-planning','under-sink-storage','pantry-organization-system','small-bathroom-storage','no-drill-storage'];
-const homeJournal = featuredSlugs.flatMap(slug => {
+const homeJournal = fullManuscriptSlugs.flatMap(slug => {
   const article = articles.find(item => item.slug === slug);
   return article && !publishedArticles.some(live => live.slug === slug)
     ? [{ slug: article.slug, title: article.title, excerpt: article.excerpt, category: article.category }]

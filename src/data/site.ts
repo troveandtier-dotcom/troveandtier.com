@@ -16,3 +16,12 @@ export const articles = [
   { slug:'small-bathroom-storage', category:'Bathroom', title:'Making a Small Bathroom Feel More Considered', excerpt:'A practical guide to small bathroom storage: moisture, vanity space, plumbing access, safe storage and the everyday routines that make a compact room work.', read:'8 min read', status:'Editorial guide' },
   { slug:'no-drill-storage', category:'Small spaces', title:'No-Drill Storage: What Works, What Can Damage Walls and What to Avoid', excerpt:'Compare adhesive, suction, tension and freestanding storage by surface, environment, load and the consequences if a fixing fails.', read:'9 min read', status:'Editorial guide' }
 ] as const;
+
+ // Only complete, source-backed manuscripts are eligible for homepage feature cards and sitemap indexing.
+export const fullManuscriptSlugs = [
+  'small-kitchen-planning',
+  'under-sink-storage',
+  'pantry-organization-system',
+  'small-bathroom-storage',
+  'no-drill-storage',
+] as const;

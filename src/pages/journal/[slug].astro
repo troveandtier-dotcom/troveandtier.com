@@ -39,7 +39,7 @@ const sections: Record<string,{intro:string;steps:string[];close:string}> = {
 };
 const body=sections[article.slug];
 ---
-<BaseLayout title={pageTitle} description={pageDescription} type="article">
+<BaseLayout title={pageTitle} description={pageDescription} type="article" noindex={!databaseArticle && !manuscriptMarkdown}>
 <Header />
 <main class="wrap">
   <article class="story">

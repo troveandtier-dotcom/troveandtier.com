@@ -1,17 +1,20 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Header from '../components/Header.astro';
-import { categories, articles } from '../data/site';
-import { getPublishedArticles } from '../lib/public-content';
+import { categories, articles, fullManuscriptSlugs } from '../data/site';
+import { getPublishedArticles, getPublishedProducts } from '../lib/public-content';
 export function getStaticPaths() {
   return categories.map(category => ({ params: { category: category.slug }, props: { category } }));
 }
 const { category } = Astro.props;
 const publishedArticles = await getPublishedArticles();
+const publishedProducts = await getPublishedProducts();
 const combinedArticles = [...publishedArticles.map(article => ({...article, category: article.category?.name || category.title, read: 'Editorial'})), ...articles.filter(item => !publishedArticles.some(article => article.slug === item.slug))];
 const related = combinedArticles.filter(article => article.category === category.title);
+const hasFullGuides = articles.some(article => article.category === category.title && (fullManuscriptSlugs as readonly string[]).includes(article.slug)) || publishedArticles.some(article => article.category?.slug === category.slug);
+const hasRegionalProducts = publishedProducts.some(product => product.category?.slug === category.slug && product.offers.length > 0);
 ---
-<BaseLayout title={category.title + ' ideas — Trove & Tier'} description={category.intro}>
+<BaseLayout title={category.title + ' ideas — Trove & Tier'} description={category.intro} noindex={!hasFullGuides && !hasRegionalProducts}>
   <Header />
   <main>
     <section class="intro wrap"><p class="eyebrow">Explore the home / {category.title}</p><h1>{category.title}<br/><em>with intention.</em></h1><p>{category.intro}</p></section>
