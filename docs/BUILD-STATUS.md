@@ -29,7 +29,7 @@ Phase 1 — public editorial site, simple affiliate product catalogue and owner 
 - Cloudflare Pages project: `trove-and-tier`; production branch remains `main`.
 - Cloudflare build settings: `npm run build`, output directory `dist`, root directory `/`.
 - GitHub source connection and branch preview deployments are working.
-- Latest preview deployment: [`a3b60e3b`](https://a3b60e3b.trove-and-tier.pages.dev), commit `18e8192a910273b388fd1acdcd1bcfc203d864bb` (`Keep Pages dashboard as deployment configuration source`). Cloudflare reports queued, initialize, clone, build and deploy stages all successful.
+- Latest preview deployment: [`cbd5b6b2`](https://cbd5b6b2.trove-and-tier.pages.dev), commit `aaf88c1783c89c8eebc744b1f05472ae224bcc8c` (`Avoid Supabase auth callback re-entrancy in Product Desk`). Cloudflare reports queued, initialize, clone, build and deploy stages all successful. A fresh browser smoke test on this exact deployment returned HTTP 200 for `/`, `/journal/`, `/journal/pantry-organization-system/`, `/studio/`, `/the-edit/` and `/kitchen/`; page titles and H1s rendered, preview `noindex, nofollow` was present, canonicals pointed to the intended production host, and no page errors were reported.
 - The build-time Supabase diagnostic passed: URL present and valid; public key present and recognized. No secret key value is logged.
 - Latest build generated 24 static pages, including the homepage, Journal, Kitchen category, Article 2, Article 3, Article 4 and Product Studio routes.
 - The Pages build now ignores the incomplete Wrangler Pages configuration and uses the dashboard's deployment configuration; the separate redirect Worker config is unchanged.
@@ -46,6 +46,11 @@ Phase 1 — public editorial site, simple affiliate product catalogue and owner 
 - Under the anon role, read-policy smoke checks completed without permission errors. Nine active categories were visible; there are currently zero published CMS articles, zero published products and zero active offers in the database.
 - Product image bucket and editor storage policies were previously verified; a transaction test inserted temporary commerce records and rolled them back.
 - GitHub Actions remain manual-only; no Actions workflow was run for these preview deployments.
+
+## Article 9 editorial review — not a release item yet
+- Added `docs/reviews/ARTICLE-09-NO-DRILL-STORAGE-REVIEW.md` on the development branch. Verdict: major revision required; do not publish the current draft. It scores 6.9/10 against the story-first and ethical-persuasion standards. The core issue is insufficient practical decision support: the next revision must center a clear framework for load, consequence of failure, surface, environment, reversibility and movement; reduce repetitive cautions; improve the comparison table and scenarios; and bound rental guidance by jurisdiction.
+- Primary-source checks reviewed 3M Command US/UK product guidance, Health Canada and US CPSC furniture tip-over guidance, and Shelter England rental-improvement guidance. The review explicitly prohibits universalizing product ratings, damage-free removal claims or England-specific tenancy advice.
+- Article 9 is not registered in the public article list, linked from published pages, or deployed as a public article. Owner approval remains required.
 
 ## Newly identified release blocker
 - The earlier dependency audit reported **5 npm audit vulnerabilities: 1 low, 3 high and 1 critical**. The affected packages and fix paths have not yet been identified. The latest Cloudflare build logs did not expose a complete npm audit report, so the findings must be treated as unresolved. No `package-lock.json` is currently committed, so dependency resolution is not fully reproducible. Obtain a complete audit report, create and commit a reviewed lockfile, and apply compatible, targeted dependency updates before production release. Do not run `npm audit fix --force` blindly.
