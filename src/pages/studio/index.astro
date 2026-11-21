@@ -49,12 +49,19 @@ async function loadDesk() {
  if(error) { say('formMsg','Could not load categories. Refresh and try again.'); return; }
  $('category').replaceChildren(new Option('Choose a room',''));
  for(const c of cats || []) $('category').add(new Option(c.name,c.id));
- const [{data:items}, total, published] = await Promise.all([
+ const [itemsResult, totalResult, publishedResult] = await Promise.all([
   db.from('products').select('id,name,slug,status,updated_at,offers:product_offers(id,status,market)').order('updated_at',{ascending:false}).limit(12),
   db.from('products').select('id',{count:'exact',head:true}),
   db.from('products').select('id',{count:'exact',head:true}).eq('status','published')
  ]);
- $('total').textContent = String(total.count ?? '—'); $('published').textContent = String(published.count ?? '—');
+ if(itemsResult.error || totalResult.error || publishedResult.error) {
+  $('total').textContent = '—'; $('published').textContent = '—';
+  $('recent').textContent = 'The product list could not be loaded. Check your connection and refresh the desk.';
+  say('formMsg','The database could not load the product list or counts. No product changes have been made.');
+  return;
+ }
+ const items = itemsResult.data;
+ $('total').textContent = String(totalResult.count ?? '—'); $('published').textContent = String(publishedResult.count ?? '—');
  $('recent').replaceChildren();
  for(const item of items || []) {
   const row=document.createElement('div');row.className='recent-item';
