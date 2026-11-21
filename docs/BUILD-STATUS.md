@@ -116,3 +116,14 @@ Do not announce the site as live or send promotional traffic to new article rout
 - Remaining browser limitation: Cloudflare Browser Rendering remains rate-limited and the preview host is not retrievable through the available web fetch. The generated robots/sitemap routes, canonical URLs, noindex tags, regional-change behavior and responsive appearance still require browser-level verification when access is restored.
 - Dependency release gate remains open: `package-lock.json` is still not committed; obtain the complete npm audit report and review the deprecated `tsconfck@3.1.6` dependency before updating packages. Do not use `npm audit fix --force`.
 - Production is untouched. PR #1 remains a draft; no merge, production deployment, products, affiliate redirects or social posts were published.
+
+
+## 21 November — Product Desk failure handling and security inspection
+
+- Product Desk now reports product-list/count query failures explicitly instead of silently presenting an empty-looking recent-products area. Commit: `29c917abd59f3d2532a74025286413266f716bc2`.
+- Read-only Supabase inspection confirmed editor-only write policies for products, offers, retailers, categories and admin roster; public reads remain filtered to published products and active offers.
+- The product publishing RPC is SECURITY INVOKER, explicitly checks `private.is_editor()`, validates the market and HTTPS URLs, checks the canonical product host against the retailer host, and creates retailer/product/offer records atomically.
+- Product image storage is public-read by design; uploads, updates and deletes require editor authorization. The bucket enforces a 5 MiB limit and JPEG/PNG/WebP/AVIF MIME allowlist.
+- Review details and uncompleted browser checks are recorded in `docs/reviews/PRODUCT-DESK-SECURITY-AND-FAILURE-REVIEW.md`.
+- A concise `npm run audit:report` diagnostic was added to capture the exact dependency advisory list from the Cloudflare build environment. This diagnostic is being run on a preview build only; the normal build command will be restored immediately after collecting the report.
+- Browser sign-in, upload, publish, pause/resume, archive/restore, and mobile visual tests remain unverified. No products were created or changed.
