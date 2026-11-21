@@ -47,10 +47,16 @@ Phase 1 — public editorial site, simple affiliate product catalogue and owner 
 - Product image bucket and editor storage policies were previously verified; a transaction test inserted temporary commerce records and rolled them back.
 - GitHub Actions remain manual-only; no Actions workflow was run for these preview deployments.
 
-## Article 9 editorial review — not a release item yet
-- Added `docs/reviews/ARTICLE-09-NO-DRILL-STORAGE-REVIEW.md` on the development branch. Verdict: major revision required; do not publish the current draft. It scores 6.9/10 against the story-first and ethical-persuasion standards. The core issue is insufficient practical decision support: the next revision must center a clear framework for load, consequence of failure, surface, environment, reversibility and movement; reduce repetitive cautions; improve the comparison table and scenarios; and bound rental guidance by jurisdiction.
-- Primary-source checks reviewed 3M Command US/UK product guidance, Health Canada and US CPSC furniture tip-over guidance, and Shelter England rental-improvement guidance. The review explicitly prohibits universalizing product ratings, damage-free removal claims or England-specific tenancy advice.
-- Article 9 is not registered in the public article list, linked from published pages, or deployed as a public article. Owner approval remains required.
+## Article 9 — revised manuscript saved and editorially approved
+- Full revised manuscript saved at `src/content/articles/no-drill-storage.md` on `feat/phase-1-editorial-site`. Commit: `e09ae67b401069df377229d8edd32099b67fc8e0`.
+- Formal review updated at `docs/reviews/ARTICLE-09-NO-DRILL-STORAGE-REVIEW.md`. Revised score: **9.0/10**; editorially approved at manuscript level. The six-factor decision framework, method-specific failure modes, comparison table, three scenarios, England-bounded tenancy guidance and FAQs are present.
+- Article 9 is not registered in the public article list, not linked from published pages and not deployed as a public article. Owner authorization and preview, metadata, image-rights and route checks remain release gates.
+
+## Article 5 — corrected manuscript saved and editorially approved
+- Full corrected manuscript saved at `src/content/articles/small-bathroom-storage.md` on `feat/phase-1-editorial-site`. Commit: `2eb1313848697bec1cc9b297366633dc220e51d2`.
+- Corrections applied: more precise cupboard moisture wording; removed unsupported claim about the largest audit group; qualified US NEC GFCI requirement by local adoption; clarified UK/US electrician sentence; fixed Article 2 canonical internal link; updated pending internal-link paths; and preserved the practical over-toilet guidance. Image-package corrections remain to be reflected when imagery is produced.
+- Editorial decision: **approved at manuscript level; owner may authorize publication**. The manuscript is not registered in the public article list or deployed as a public article.
+
 
 ## Newly identified release blocker
 - The earlier dependency audit reported **5 npm audit vulnerabilities: 1 low, 3 high and 1 critical**. The affected packages and fix paths have not yet been identified. The latest Cloudflare build logs did not expose a complete npm audit report, so the findings must be treated as unresolved. No `package-lock.json` is currently committed, so dependency resolution is not fully reproducible. Obtain a complete audit report, create and commit a reviewed lockfile, and apply compatible, targeted dependency updates before production release. Do not run `npm audit fix --force` blindly.
