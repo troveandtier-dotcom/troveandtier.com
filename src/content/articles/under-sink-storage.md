@@ -14,7 +14,7 @@ The cupboard under the sink is the most misjudged space in the home. It looks li
 
 That is why under-sink storage fails so predictably. A shelf bought for "a standard cupboard" fits through the opening and cannot sit flat, because the trap is in the way. Or it fits around the trap and leaves no room for the bottles you wanted to store. The cupboard ends up less reachable than before.
 
-So this is a guide to thinking it through before buying anything: what is really in there, how to measure it, and why moisture and chemistry matter more here than in any other cupboard in the house. If you are still working out what the kitchen holds overall, our [plan for a small kitchen](/journal/small-kitchen-planning/) starts one step earlier.
+So this is a guide to thinking it through before buying anything: what is really in there, how to measure it, and why moisture and chemistry matter more here than in any other cupboard in the house. If the same kitchen also needs a better shelf-stable food system, our [pantry organization guide](/journal/pantry-organization-system/) starts with visibility and rotation.
 
 ## What is actually in the cupboard
 
