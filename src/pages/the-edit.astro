@@ -19,7 +19,6 @@ import BaseLayout from '../layouts/BaseLayout.astro'; import Header from '../com
 import { supabase } from '../lib/supabase';
 const grid=document.querySelector<HTMLElement>('#editGrid');
 const loading=document.querySelector<HTMLElement>('#editLoading');
-const node=(tag:string,cls:string,txt?:string)=>{const n=document.createElement(tag);if(cls)n.className=cls;if(txt!==undefined)n.textContent=txt;return n;};
 type Offer = { id:string; market:'US'|'UK'|'CA'; affiliate_url:string|null; canonical_url:string; status:string; retailer:{name:string;is_active:boolean}|Array<{name:string;is_active:boolean}>|null };
 type Product = { id:string; name:string; brand:string|null; summary:string; image_url:string|null; pros:string[]; evidence_type:string; category:{name:string;slug:string}|Array<{name:string;slug:string}>|null; offers:Offer[] };
 const getMarket=(): 'US'|'UK'|'CA'=>{try{const value=localStorage.getItem('tt-region');return value==='UK'||value==='CA'?value:'US';}catch{return 'US';}};
