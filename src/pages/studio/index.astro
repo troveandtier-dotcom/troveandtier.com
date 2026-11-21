@@ -1,0 +1,126 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+---
+<BaseLayout title="Product Desk — Trove & Tier" description="Add and publish Trove & Tier product recommendations." noindex={true}>
+<main class="studio">
+  <header><a href="/" class="wordmark">TROVE <span>&amp;</span> TIER</a><a href="/">View website ↗</a></header>
+  <section class="intro"><p class="eyebrow">TROVE &amp; TIER · PRIVATE PRODUCT DESK</p><h1>Add a good find.<br/><em>Put it out there.</em></h1><p>Add the product, its image and your affiliate link. Publish it to the relevant room page in one step.</p></section>
+  <section id="config" class="notice" hidden>Website database connection is not configured yet. The site owner needs to add the Supabase URL and public key to the hosting environment.</section>
+  <section id="login" class="panel" hidden><h2>Sign in</h2><form id="loginForm"><label>Email<input id="email" type="email" autocomplete="username" required></label><label>Password<input id="password" type="password" autocomplete="current-password" required></label><button>Sign in</button><p id="loginMsg" role="status"></p></form></section>
+  <section id="desk" hidden>
+    <div class="deskhead"><div><p class="eyebrow">YOUR PRODUCT DESK</p><h2>New product</h2></div><button id="logout" class="secondary">Sign out</button></div>
+    <div class="columns">
+      <form id="productForm" class="panel">
+        <h3>1. Product details</h3>
+        <label>Product name<input id="name" required maxlength="160" placeholder="e.g. Slim rolling storage cart"></label>
+        <label>Brand (optional)<input id="brand" maxlength="120"></label>
+        <label>Category<select id="category" required><option value="">Choose a room</option></select></label>
+        <label>Short description<textarea id="summary" required maxlength="500" rows="3" placeholder="What does it help with?"></textarea></label>
+        <label>Upload product image<input id="imageFile" type="file" accept="image/jpeg,image/png,image/webp,image/avif"></label><label>Or use an image URL<input id="image" type="url" placeholder="https://..."></label><p class="hint">Images up to 5 MB. JPEG, PNG, WebP or AVIF. Uploading a file is optional.</p>
+        <label>Image credit / source<input id="imageCredit" maxlength="240" placeholder="Who supplied the image?"></label>
+        <label>Image usage rights<select id="imageRights"><option value="">Choose if using an image</option><option value="owned">I created or own this image</option><option value="licensed">I have a licence to use it</option><option value="manufacturer_permission">The manufacturer authorised its use</option></select></label>
+        <label>Why it may be useful (optional)<textarea id="pros" rows="2" placeholder="One point per line"></textarea></label>
+        <label>Limitations / fit notes (optional)<textarea id="limits" rows="2" placeholder="Measurements, compatibility or caveats"></textarea></label>
+        <h3>2. Retailer &amp; affiliate link</h3>
+        <label>Retailer name<input id="retailer" required placeholder="e.g. Amazon"></label>
+        <label>Market<select id="market"><option value="US">United States</option><option value="UK">United Kingdom</option><option value="CA">Canada</option></select></label>
+        <label>Retailer product page URL<input id="canonical" type="url" required placeholder="https://retailer.com/product"></label>
+        <label>Your affiliate link<input id="affiliate" type="url" required placeholder="Paste the full tracked affiliate URL"></label>
+        <p class="hint">Use your approved affiliate link. It will be the link visitors follow. Confirm that the product page belongs to the retailer you name.</p>
+        <button type="submit" id="publish">Publish product</button>
+        <p id="formMsg" role="status" class="message"></p>
+      </form>
+      <aside class="panel side"><p class="eyebrow">HOW IT WORKS</p><h3>One simple workflow.</h3><ol><li>Add the product and a permitted image.</li><li>Paste your affiliate link and choose the market.</li><li>Publish. The product appears on its category page.</li></ol><p class="hint">Publishing creates an editorial listing, not a product test or live-stock verification. Check claims, image rights and the retailer page before publishing.</p><div class="stats"><div><small>PRODUCTS</small><strong id="total">—</strong></div><div><small>PUBLISHED</small><strong id="published">—</strong></div></div><h3>Recently added</h3><div id="recent" class="recent">Loading…</div></aside>
+    </div>
+  </section>
+  <footer><span>TROVE &amp; TIER</span><span>Thoughtful finds. Better living.</span></footer>
+</main>
+<script>
+import { supabase } from '../../lib/supabase';
+const db = supabase!;
+type FieldElement = HTMLInputElement & HTMLSelectElement & HTMLTextAreaElement & HTMLElement;
+const $ = (id: string) => document.getElementById(id) as FieldElement;
+const show = (id: string, yes: boolean) => { $(id).hidden = !yes; };
+const say = (id: string, value: string) => { $(id).textContent = value; };
+const lines = (id: string): string[] => $(id).value.split('\n').map(x => x.trim()).filter(Boolean);
+function https(value: string): URL | null { try { const u = new URL(value); return u.protocol === 'https:' && !u.username && !u.password ? u : null; } catch { return null; } }
+async function loadDesk() {
+ const { data: cats, error } = await db.from('categories').select('id,name').eq('is_active',true).order('sort_order');
+ if(error) { say('formMsg','Could not load categories. Refresh and try again.'); return; }
+ $('category').replaceChildren(new Option('Choose a room',''));
+ for(const c of cats || []) $('category').add(new Option(c.name,c.id));
+ const [itemsResult, totalResult, publishedResult] = await Promise.all([
+  db.from('products').select('id,name,slug,status,updated_at,offers:product_offers(id,status,market)').order('updated_at',{ascending:false}).limit(12),
+  db.from('products').select('id',{count:'exact',head:true}),
+  db.from('products').select('id',{count:'exact',head:true}).eq('status','published')
+ ]);
+ if(itemsResult.error || totalResult.error || publishedResult.error) {
+  $('total').textContent = '—'; $('published').textContent = '—';
+  $('recent').textContent = 'The product list could not be loaded. Check your connection and refresh the desk.';
+  say('formMsg','The database could not load the product list or counts. No product changes have been made.');
+  return;
+ }
+ const items = itemsResult.data;
+ $('total').textContent = String(totalResult.count ?? '—'); $('published').textContent = String(publishedResult.count ?? '—');
+ $('recent').replaceChildren();
+ for(const item of items || []) {
+  const row=document.createElement('div');row.className='recent-item';
+  const title=document.createElement('p');title.textContent=item.name+' · '+item.status.replace('_',' ');row.append(title);
+  const actions=document.createElement('div');actions.className='recent-actions';
+  for(const offer of item.offers||[]){
+   const toggle=document.createElement('button');toggle.type='button';toggle.className='secondary';toggle.textContent=(offer.status==='active'?'Pause ':'Resume ')+offer.market;
+   toggle.addEventListener('click',async()=>{toggle.disabled=true;const next=offer.status==='active'?'paused':'active';const result=await db.from('product_offers').update({status:next}).eq('id',offer.id);if(result.error){say('formMsg','Could not update this retailer link. '+result.error.message);toggle.disabled=false;return;}say('formMsg','Retailer link updated.');await loadDesk();});
+   actions.append(toggle);
+  }
+  const archive=document.createElement('button');archive.type='button';archive.className='secondary';archive.textContent=item.status==='archived'?'Restore':'Archive';
+  archive.addEventListener('click',async()=>{archive.disabled=true;const next=item.status==='archived'?'published':'archived';const result=await db.from('products').update({status:next,published_at:next==='published'?new Date().toISOString():null}).eq('id',item.id);if(result.error){say('formMsg','Could not update this product. '+result.error.message);archive.disabled=false;return;}say('formMsg',next==='archived'?'Product archived.':'Product restored.');await loadDesk();});
+  actions.append(archive);row.append(actions);$('recent').append(row);
+ }
+ if(!items?.length) $('recent').textContent='No products added yet.';
+}
+async function check() {
+ if(!db) { show('config',true); show('login',false); show('desk',false); return; }
+ const {data:{session}}=await db.auth.getSession();
+ if(!session) { show('login',true); show('desk',false); return; }
+ const {data:admin,error}=await db.from('admin_users').select('role').eq('user_id',session.user.id).maybeSingle();
+ if(error || !admin) { await db.auth.signOut(); show('login',true); show('desk',false); say('loginMsg','This account is not authorised to manage the website.'); return; }
+ show('login',false); show('desk',true); await loadDesk();
+}
+$('loginForm').addEventListener('submit',async e=>{e.preventDefault();say('loginMsg','Signing in…');const {error}=await db.auth.signInWithPassword({email:$('email').value,password:$('password').value});if(error){say('loginMsg','Sign-in failed. Check your email and password.');return;}say('loginMsg','');await check();});
+$('logout').addEventListener('click',async()=>{await db.auth.signOut();await check();});
+$('productForm').addEventListener('submit',async e=>{
+ e.preventDefault(); const form=e.currentTarget as HTMLFormElement; const button=$('publish'); button.disabled=true; button.textContent='Publishing…'; say('formMsg','Saving product and affiliate link…');
+ const canonical=https($('canonical').value.trim()), affiliate=https($('affiliate').value.trim()), imageRaw=$('image').value.trim(), image=imageRaw?https(imageRaw):null, imageFile=$('imageFile').files?.[0];
+ if(!canonical||!affiliate||(imageRaw&&!image)||(imageRaw&&imageFile)||((imageRaw||imageFile)&&!$('imageRights').value)){say('formMsg','Use valid HTTPS links for the retailer, affiliate link and image.');button.disabled=false;button.textContent='Publish product';return;}
+ if(imageFile && (!['image/jpeg','image/png','image/webp','image/avif'].includes(imageFile.type) || imageFile.size > 5*1024*1024)){say('formMsg','Choose a JPEG, PNG, WebP or AVIF image under 5 MB.');button.disabled=false;button.textContent='Publish product';return;}
+ const market=$('market').value as 'US'|'UK'|'CA', retailerName=$('retailer').value.trim();
+ let uploadedPath: string | null = null;
+ let productSaved = false;
+ try {
+  const name=$('name').value.trim(), slug=name.toLowerCase().normalize('NFKD').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')+'-'+crypto.randomUUID().slice(0,8);
+  let imageUrl: string | null = image?.toString() || null;
+  if(imageFile){const ext={ 'image/jpeg':'jpg','image/png':'png','image/webp':'webp','image/avif':'avif' }[imageFile.type];uploadedPath=crypto.randomUUID()+'.'+ext;const upload=await db.storage.from('product-images').upload(uploadedPath,imageFile,{contentType:imageFile.type,cacheControl:'31536000',upsert:false});if(upload.error)throw upload.error;imageUrl=db.storage.from('product-images').getPublicUrl(uploadedPath).data.publicUrl;}
+  const {error:publishError}=await db.rpc('publish_product_with_offer',{
+   p_retailer:{name:retailerName,market,website_url:canonical.origin},
+   p_product:{
+    name,slug,brand:$('brand').value.trim()||null,category_id:$('category').value,
+    summary:$('summary').value.trim(),description:$('summary').value.trim(),
+    image_url:imageUrl,image_credit:$('imageCredit').value.trim()||null,
+    image_rights_status:imageUrl?$('imageRights').value:'unverified',
+    pros:lines('pros'),limitations:lines('limits')
+   },
+   p_offer:{market,canonical_url:canonical.toString(),affiliate_url:affiliate.toString()}
+  });
+  if(publishError) throw publishError;
+  productSaved = true;
+  form.reset(); say('formMsg','Published. Your product is now on its room/category page.'); await loadDesk();
+ } catch(err: unknown) { if(uploadedPath && !productSaved) await db.storage.from('product-images').remove([uploadedPath]); const message=typeof err==='object' && err!==null && 'message' in err ? String(err.message) : 'Could not publish this product. Check the details and try again.'; say('formMsg',message); }
+ finally { button.disabled=false;button.textContent='Publish product'; }
+});
+if(db) db.auth.onAuthStateChange((event)=>{if(event==='SIGNED_OUT') queueMicrotask(()=>{void check();});});
+check();
+</script>
+<style>
+.studio{min-height:100vh;background:#f5f0e7;color:var(--color-charcoal);padding:0 5% 35px}header,footer{max-width:1160px;margin:auto;display:flex;justify-content:space-between;align-items:center;padding:25px 0;border-bottom:1px solid var(--line)}header a,footer{font-size:10px;color:var(--color-deep-sage);text-decoration:none}.wordmark{font:21px var(--font-display);letter-spacing:.12em;color:var(--color-charcoal)}.wordmark span{color:var(--color-deep-sage)}.intro{max-width:1160px;margin:65px auto 40px}.eyebrow{font-size:9px;letter-spacing:.17em;text-transform:uppercase;color:var(--color-deep-sage)}h1{font:clamp(54px,8vw,88px)/.92 var(--font-display);margin:17px 0}h1 em{font-weight:400;color:var(--color-deep-sage)}.intro>p:last-child{font-size:13px;color:#67685f;line-height:1.8;max-width:560px}.panel{background:#fffdf8;border:1px solid #e2dbcf;padding:25px}.panel h2,.deskhead h2{font:34px var(--font-display);margin:8px 0 20px}.panel h3{font:27px var(--font-display);margin:0 0 20px}.columns{max-width:1160px;margin:20px auto;display:grid;grid-template-columns:1.2fr .8fr;gap:18px;align-items:start}.panel form{display:grid;gap:13px}.panel label{font-size:10px;display:grid;gap:7px;color:#55574f}.panel input,.panel textarea,.panel select{width:100%;box-sizing:border-box;border:1px solid #d9d2c6;background:#fffdf8;padding:12px;font:12px var(--font-body);color:#33352f;border-radius:0}.panel .check{display:flex;align-items:center;gap:10px}.panel .check input{width:17px;height:17px}.panel button{background:var(--color-charcoal);color:white;border:0;padding:14px 18px;font-size:10px;letter-spacing:.08em;cursor:pointer}.panel button:disabled{opacity:.55}.secondary{background:transparent!important;color:var(--color-charcoal)!important;border:1px solid var(--line)!important}.deskhead{max-width:1160px;margin:35px auto 20px;display:flex;justify-content:space-between;align-items:center}.deskhead h2{margin:7px 0}.hint,.message,#loginMsg{font-size:11px;line-height:1.7;color:#696b62}.side{position:sticky;top:20px}.side ol{padding-left:20px;font-size:12px;line-height:1.9}.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:25px 0}.stats div{background:#e7e1d6;padding:15px;display:grid;gap:7px}.stats small{font-size:8px;letter-spacing:.12em}.stats strong{font:29px var(--font-display)}.recent-item{padding:10px 0;border-top:1px solid var(--line)}.recent-item p{font-size:11px;margin:0 0 8px}.recent-actions{display:flex;flex-wrap:wrap;gap:6px}.recent-actions button{font-size:9px;padding:8px 10px}.notice{max-width:1160px;margin:0 auto;padding:18px;background:#e7dfd1;font-size:12px}footer{border-top:1px solid var(--line);border-bottom:0;margin-top:65px;font-size:9px;letter-spacing:.14em;color:var(--color-charcoal)}@media(max-width:760px){.columns{grid-template-columns:1fr}.side{position:static}.intro{margin-top:45px}header{align-items:flex-start}}
+</style>
+</BaseLayout>
