@@ -90,3 +90,15 @@ Do not announce the site as live or send promotional traffic to new article rout
 
 - Article 5's safety and technical statements now link inline to the primary guidance: US EPA moisture guidance, Health Canada household-chemical guidance, RoSPA poisoning-prevention guidance, Electrical Safety First bathroom guidance, NFPA 70, and Ontario ESA guidance. This update is in commit `dcf1f6c49289d93c1a0519362a6996bd6363ecb1`.
 - The Article 5 source-link update is on the development branch and will receive its own Cloudflare preview deployment. Browser-rendering verification remains rate-limited; do not treat the final robots metadata check as passed until it is re-run.
+
+## Further work — 21 November 2026
+- Article 1's full revised manuscript is now rendered at the existing canonical route `/journal/small-kitchen-planning/`; the Journal entry has been refreshed and the Kitchen category remains its index destination.
+- Article 5 and Article 9 are registered in the Journal and their Bathroom and Small Spaces categories. Their full manuscripts are rendered from the source files, not the short fallback summaries.
+- Article 5 primary-source links were added for EPA, Health Canada, RoSPA, Electrical Safety First, NFPA and Ontario ESA. Its companion production package is saved at `docs/editorial/ARTICLE-05-PUBLICATION-PACKAGE.md`.
+- Article 1's companion visual/Pinterest package is saved at `docs/editorial/ARTICLE-01-PUBLICATION-PACKAGE.md`; the manuscript links its kitchen-fire and household-chemical safety guidance to NFPA and Indiana DEM.
+- Added `src/content.config.ts` with an explicit Astro glob collection for the Markdown manuscripts. The preview build on the preceding commit completed successfully and the Astro implicit-collection deprecation warning disappeared.
+- Removed the incomplete root `wrangler.jsonc`, which was being detected by Pages but lacked `pages_build_output_dir` and caused a configuration warning. The separate `wrangler.worker.jsonc` remains dedicated to the future affiliate redirect Worker; Pages continues using its existing dashboard build configuration. This does not deploy the Worker.
+- Latest completed preview before the config cleanup: `https://f3bb989c.trove-and-tier.pages.dev/`, commit `c19b800f5355ec11d1202c0a0ca36b0564cd748f`; Cloudflare reports build and deploy successful, 26 static pages generated. Routes include Article 1, Article 2, Article 4, Article 5 and Article 9.
+- A newer preview for commit `5589188d957c418df8dda329ae2b6cc6373f924d` is in progress at `https://fc1badb5.trove-and-tier.pages.dev/`; its final build/deploy result must be checked before calling the config cleanup verified.
+- Cloudflare Browser Rendering returned HTTP 429 and explicitly requested a long wait. Do not retry during the provider's stated cooldown. The final canonical/robots browser check remains pending; no substitute browser pass is claimed.
+- No changes to `main`, no production deploy, no product listings, and no affiliate redirect Worker deployment.
