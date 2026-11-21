@@ -9,7 +9,7 @@ export const categories = [
 ] as const;
 
 export const articles = [
-  { slug:'small-kitchen-planning', category:'Kitchen', title:'A more useful small kitchen starts with a plan', excerpt:'A practical framework for understanding your storage, workflow and everyday pinch points before buying another organizer.', read:'6 min read', status:'Editorial guide' },
+  { slug:'small-kitchen-planning', category:'Kitchen', title:'A More Useful Small Kitchen Starts With a Plan', excerpt:'Audit what you own, measure the room and organize around everyday tasks before buying another kitchen organizer.', read:'8 min read', status:'Editorial guide' },
   { slug:'under-sink-storage', category:'Kitchen', title:'How to Think Through Under-Sink Storage', excerpt:'Measure around the plumbing, keep the shut-off valves reachable and choose storage that works with the space you actually have.', read:'9 min read', status:'Editorial guide' },
   { slug:'pantry-organization-system', category:'Kitchen', title:'A Pantry That Works: Building a Better Food Storage System', excerpt:'Build a pantry around visibility and rotation: audit what you own, group food by use and understand what date labels mean in your market.', read:'9 min read', status:'Editorial guide' },
   { slug:'closet-reset', category:'Closet', title:'A thoughtful wardrobe reset, one zone at a time', excerpt:'A manageable way to review hanging space, drawers, shelves and the items you reach for most.', read:'7 min read', status:'Editorial guide' },
