@@ -1,6 +1,6 @@
 # Trove & Tier build status
 
-Last checked: 20 November 2026
+Last checked: 21 November 2026
 
 ## Current phase
 Phase 1 — public editorial site, simple affiliate product catalogue and owner publishing desk.
@@ -29,8 +29,10 @@ Phase 1 — public editorial site, simple affiliate product catalogue and owner 
 - Cloudflare Pages project: `trove-and-tier`; production branch remains `main`.
 - Cloudflare build settings: `npm run build`, output directory `dist`, root directory `/`.
 - GitHub source connection and branch preview deployments are working.
-- Latest preview deployment: [`b49e9ccd`](https://b49e9ccd.trove-and-tier.pages.dev), commit `be91c042ee2e043e5e725eff7e03b300f2d593be` (`seo: prevent indexing of preview deployments`). Cloudflare reports queued, initialize, clone, build and deploy stages all successful.
+- Latest preview deployment: [`a3b60e3b`](https://a3b60e3b.trove-and-tier.pages.dev), commit `18e8192a910273b388fd1acdcd1bcfc203d864bb` (`Keep Pages dashboard as deployment configuration source`). Cloudflare reports queued, initialize, clone, build and deploy stages all successful.
+- The build-time Supabase diagnostic passed: URL present and valid; public key present and recognized. No secret key value is logged.
 - Latest build generated 24 static pages, including the homepage, Journal, Kitchen category, Article 2, Article 3, Article 4 and Product Studio routes.
+- The Pages build now ignores the incomplete Wrangler Pages configuration and uses the dashboard's deployment configuration; the separate redirect Worker config is unchanged.
 - Latest deployment logs contain no `permission denied for function is_editor` or `Published article snapshot unavailable` messages. The public read-policy issue is therefore cleared at build/smoke-test level; browser behavior still needs validation.
 - Cloudflare deployment preview URL: `https://b49e9ccd.trove-and-tier.pages.dev`. Preview alias: `https://feat-phase-1-editorial-site.trove-and-tier.pages.dev`.
 - Supabase project ref: `lavvvwhxshfwambxklko`; region `eu-west-1`.
@@ -48,7 +50,8 @@ Phase 1 — public editorial site, simple affiliate product catalogue and owner 
 - End-to-end owner login and password sign-in from the website. The owner must enter the password privately; it should never be shared in chat.
 - End-to-end product image upload, publish, pause/resume, archive/restore and public product display.
 - Confirm the category-page nested Supabase relation filter works in the browser.
-- Confirm failed offer creation cannot leave a misleading partially published product.
+- Fix the product publish flow's partial-failure handling: product and offer inserts are currently separate requests; if offer creation fails, compensating product deletion may itself fail under row-level security. Do not publish real products until this is replaced with an atomic database RPC/transaction or a safe draft-first recovery flow. Keep uploaded images until the product's final state is known.
+- Browser verification of preview pages is still pending. Cloudflare Browser Run returned a rate-limit response during this check; do not retry until the cooldown has elapsed.
 - Confirm the final production build and deploy to the production branch only after preview acceptance.
 - Post-deployment verification on `https://trove-and-tier.pages.dev/`.
 
