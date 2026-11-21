@@ -67,4 +67,4 @@ No product was inserted or modified during this review. The SQL inspection was r
 
 ## Release recommendation
 
-The inspected database authorization and atomic publishing design are sound for the current single-owner workflow. Keep Product Desk browser testing as a launch blocker. Before public product listings are created, verify image rights and all factual product claims manually. The separate dependency audit and reproducible lockfile remain open release blockers.
+The inspected database authorization and atomic publishing design are sound for the current single-owner workflow. Keep Product Desk browser testing as a launch blocker. Before public product listings are created, verify image rights and all factual product claims manually. The dependency audit is now closed: Astro 7.4.13 and a committed npm lockfile produce zero reported npm advisories, and `astro check` passes with zero errors, warnings, or hints. Product Desk browser end-to-end testing remains a launch blocker.
