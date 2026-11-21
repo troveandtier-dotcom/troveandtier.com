@@ -13,8 +13,8 @@
     "prebuild": "node scripts/check-build-env.mjs"
   },
   "dependencies": {
-    "@astrojs/check": "^0.9.4",
-    "astro": "^5.7.0",
+    "@astrojs/check": "0.9.12",
+    "astro": "7.4.13",
     "typescript": "^5.8.0",
     "@supabase/supabase-js": "^2.57.0"
   },
