@@ -125,15 +125,15 @@ Do not announce the site as live or send promotional traffic to new article rout
 - The product publishing RPC is SECURITY INVOKER, explicitly checks `private.is_editor()`, validates the market and HTTPS URLs, checks the canonical product host against the retailer host, and creates retailer/product/offer records atomically.
 - Product image storage is public-read by design; uploads, updates and deletes require editor authorization. The bucket enforces a 5 MiB limit and JPEG/PNG/WebP/AVIF MIME allowlist.
 - Review details and uncompleted browser checks are recorded in `docs/reviews/PRODUCT-DESK-SECURITY-AND-FAILURE-REVIEW.md`.
-- A concise `npm run audit:report` diagnostic was added to capture the exact dependency advisory list from the Cloudflare build environment. This diagnostic is being run on a preview build only; the normal build command will be restored immediately after collecting the report. The audit-only build is triggered after the Cloudflare project build command is switched temporarily; no GitHub Actions workflow is involved.
+- A concise `npm run audit:report` utility remains available for future dependency checks. The one-time diagnostic is complete and the standard Cloudflare Pages build command has been restored. The audit-only build is triggered after the Cloudflare project build command is switched temporarily; no GitHub Actions workflow is involved.
 - Browser sign-in, upload, publish, pause/resume, archive/restore, and mobile visual tests remain unverified. No products were created or changed.
 
 
 ## 21 November — dependency security remediation
 
 - Replaced vulnerable Astro 5.18.2 with the official Astro 7.4.13 release and pinned `@astrojs/check` to 0.9.12. The Astro 7 static build succeeded on Cloudflare's Node 22.23.4 image.
-- Generated and committed `package-lock.json` from the actual Cloudflare npm resolution (lockfile v3; 402 package entries; 201,856 bytes). SHA-256: `ffc8f58b54e0bf362c745d6348ff795d7ae69d331d95f6cc3f6346ef86160db7`.
+- Generated and committed `package-lock.json` for the final dependency tree (lockfile v3; 404 package entries; 202,581 bytes). SHA-256: `b79b64646a18ab16e631706533efe302a9a47ddc7d2936ea66ca06cf7c071282`. It includes `@types/node@22.20.5` and `undici-types@6.21.0`.
 - Re-ran `npm audit --json` against the upgraded, lockfile-backed dependency tree: **0 info, 0 low, 0 moderate, 0 high, 0 critical; total 0**.
 - The upgrade build generated 25 static pages successfully. The duplicate `/the-edit` category path was removed from the dynamic category route because the dedicated `/the-edit` page owns that URL.
-- A one-time preview diagnostic is now checking `astro check` as well as the audit and production build. The normal Cloudflare Pages build command will be restored after that check. No GitHub Actions workflow was used.
+- Final preview verification passed: `astro check` reported **0 errors, 0 warnings, 0 hints across 29 files**; the static build generated 25 pages; the route-priority warning was eliminated. The standard Cloudflare Pages build command is restored to `npm run build`. No GitHub Actions workflow was used.
 - Browser sign-in, Product Desk upload/publish lifecycle, and mobile visual review remain outstanding. No production deployment or product publication occurred.
