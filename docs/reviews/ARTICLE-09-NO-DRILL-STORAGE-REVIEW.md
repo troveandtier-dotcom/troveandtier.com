@@ -3,7 +3,7 @@
 **Review date:** 21 November 2026  
 **Working title:** No-Drill Storage Ideas for Renters and Flexible Homes  
 **Proposed route:** `/journal/no-drill-storage/`  
-**Status:** Revision required; not approved for publication  
+**Status:** Revised manuscript editorially approved; owner may authorize publication  
 **Reviewer:** Trove & Tier editorial standards review
 
 ## Verdict
@@ -162,3 +162,34 @@ Do not register this article in the public article list, add it to the Journal, 
 - the final manuscript is reviewed and owner-approved.
 
 **Final verdict:** Keep the article. Do not publish this draft. Its ethical instincts are stronger than its practical depth. The next revision must make the reader better at choosing—not merely more aware that choosing can be risky.
+
+
+## Revised manuscript — final review (21 November 2026)
+
+**Saved manuscript:** `src/content/articles/no-drill-storage.md`  
+**Proposed public route:** `/journal/no-drill-storage/`  
+**Editorial decision:** **9.0/10 — approved at manuscript level; owner may authorize publication.**
+
+The revised manuscript now implements the required six-factor decision framework (item/load, surface, environment, frequency/movement, reversibility and failure consequence); distinguishes the failure modes of adhesive, suction, tension, over-door and freestanding methods; provides a comparison table with fit, checks and reasons to avoid; includes three illustrative scenarios; bounds Shelter guidance to England; adds the requested FAQs; and preserves the no-testing/no-guarantee/no-legal-advice boundary.
+
+| Standard | Revised score | Finding |
+|---|---:|---|
+| Story-first opening | 9/10 | A recognizable renter moment leads to a clear decision question. |
+| Reader usefulness | 9/10 | The six checks and method-specific failure modes support actual choices. |
+| Distinctive editorial value | 8/10 | Stronger decision aid; the underlying product categories remain familiar. |
+| Accuracy and sourcing | 9/10 | Manufacturer, tenancy and safety guidance are bounded; no universal load claims. |
+| Safety and responsibility | 9/10 | Failure consequences and furniture tip-over risks are handled appropriately. |
+| Trade-offs and alternatives | 9/10 | Includes no-purchase, repositioning and safer alternatives. |
+| Brand voice | 9/10 | Calm, practical and non-sensational. |
+| SEO and search intent | 9/10 | Title, slug, comparison table and FAQs answer the core intent. |
+| Commercial integrity | 10/10 | No fabricated tests, testimonials, product endorsements, prices or pressure. |
+
+### Remaining publication checks
+
+- Confirm the owner authorizes publication.
+- Add the article to the public Journal/category register only after authorization.
+- Verify canonical metadata, source links, mobile/desktop rendering and live route in preview.
+- Secure original or licensed imagery and add accurate alt text; the manuscript does not authorize reuse of retailer/manufacturer images.
+- Do not publish or deploy to production solely because editorial review passed.
+
+The manuscript is saved on the development branch. This review is not a claim that the article is live or publicly published.
