@@ -34,7 +34,7 @@ As you sort, note what you actually rebuy. That list, not a Pinterest board, is 
 
 ## Step two: check the room before the cupboard
 
-Storage conditions matter as much as layout, and they are easy to get wrong in a small kitchen. If you are planning the wider room as well, our [small-kitchen planning guide](/journal/small-kitchen-planning/) covers the layout and everyday workflow around the pantry.
+Storage conditions matter as much as layout, and they are easy to get wrong in a small kitchen. If your kitchen also has a cupboard beneath the sink, our [under-sink storage guide](/journal/under-sink-storage/) explains why plumbing, moisture and chemical safety need a different approach.
 
 US Department of Agriculture guidance for shelf-stable food is specific: store canned and other shelf-stable products in a cool, dry place, never above or beside the stove, under the sink, in a damp garage or basement, or anywhere exposed to temperature extremes, and temperatures below 85°F (about 29°C) are best. The same guidance notes that high temperatures are harmful to canned goods and that the risk of spoilage rises sharply as storage temperature climbs.
 
