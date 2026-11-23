@@ -1,0 +1,28 @@
+{
+  "name": "trove-and-tier",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "check": "astro check",
+    "audit:report": "node scripts/audit-report.mjs",
+    "format": "prettier --write .",
+    "prebuild": "node scripts/check-build-env.mjs"
+  },
+  "dependencies": {
+    "@astrojs/check": "0.9.12",
+    "astro": "7.4.13",
+    "typescript": "^5.8.0",
+    "@supabase/supabase-js": "^2.57.0"
+  },
+  "devDependencies": {
+    "@types/node": "22.20.5",
+    "prettier": "^3.5.0"
+  },
+  "overrides": {
+    "rollup": "4.68.7"
+  }
+}

@@ -1,0 +1,31 @@
+---
+import '../styles/tokens.css';
+const { title = 'Trove & Tier — Thoughtful finds. Better living.', description = 'Thoughtful home finds, practical ideas and considered essentials for better living.', noindex = false, type = 'website' } = Astro.props;
+const canonicalOrigin = import.meta.env.PUBLIC_SITE_URL || 'https://troveandtier.com';
+const canonicalUrl = new URL(Astro.url.pathname, canonicalOrigin).toString();
+const noIndexPage = noindex || process.env.CF_PAGES_BRANCH !== 'main';
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonicalUrl} />
+    <meta property="og:site_name" content="Trove &amp; Tier" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content={type} />
+    <meta property="og:url" content={canonicalUrl} />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    {noIndexPage && <meta name="robots" content="noindex, nofollow" />}
+    <meta name="theme-color" content="#E9E2D7" />
+    <link rel="icon" type="image/png" href="/brand/trove-tier-logo.png" />
+    <link rel="apple-touch-icon" href="/brand/trove-tier-logo.png" />
+    <title>{title}</title>
+    <slot name="head" />
+  </head>
+  <body><slot /></body>
+</html>

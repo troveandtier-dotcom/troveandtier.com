@@ -1,0 +1,139 @@
+# Trove & Tier build status
+
+Last checked: 21 November 2026 — latest preview and product evidence safeguards rechecked
+
+## Current phase
+Phase 1 — public editorial site, simple affiliate product catalogue and owner publishing desk.
+
+## Implemented in `feat/phase-1-editorial-site`
+- Astro public website with homepage, room/category pages, The Trove Edit, Journal, about, policy and contact pages.
+- Private owner/editor sign-in at `/studio`, restricted by the Supabase `admin_users` allowlist.
+- Product form for name, brand, category, description, optional image, image-use rights, retailer, market, canonical product URL and affiliate URL.
+- Product controls to pause/resume regional retailer links and archive/restore products.
+- Optional image upload to the dedicated Supabase Storage bucket (`product-images`), limited to JPEG, PNG, WebP or AVIF up to 5 MB.
+- Public category pages and The Trove Edit load published products from Supabase.
+- Affiliate links are direct tracked destinations with `rel="sponsored noopener noreferrer"`; affiliate disclosure is visible near product listings.
+- Logo mark is the supplied, unaltered brand mark, optimized for the site header; favicon and Apple touch icon reference the same mark.
+- Story-first homepage introduction and category descriptions follow the approved Trove & Tier editorial standard.
+- Journal listing combines static editorial entries with published CMS articles.
+- Full Article 2 manuscript is integrated at the existing canonical route `/journal/under-sink-storage/`.
+- Article 4 manuscript, approved by the owner, is integrated at `/journal/pantry-organization-system/`, with Kitchen category registration, metadata, byline and corrected Article 1/2 internal links.
+- Safe Markdown rendering supports article headings, paragraphs, lists, tables and safe links.
+- Supabase migration separates public read policies from the private editor helper. Public roles can read only active/published records; authenticated owner/editor access remains through separate editor policies.
+- Preview deployments are configured not to be indexed; the canonical production hostname remains the intended indexable host.
+
+## Verified infrastructure and tests
+- GitHub repository: `troveandtier-dotcom/troveandtier.com`.
+- Development branch: `feat/phase-1-editorial-site`.
+- Pull request #1 remains open as a draft; it has not been merged.
+- Cloudflare Pages project: `trove-and-tier`; production branch remains `main`.
+- Cloudflare build settings: `npm run build`, output directory `dist`, root directory `/`.
+- GitHub source connection and branch preview deployments are working.
+- Latest preview deployment: [`cbd5b6b2`](https://cbd5b6b2.trove-and-tier.pages.dev), commit `aaf88c1783c89c8eebc744b1f05472ae224bcc8c` (`Avoid Supabase auth callback re-entrancy in Product Desk`). Cloudflare reports queued, initialize, clone, build and deploy stages all successful. A fresh browser smoke test on this exact deployment returned HTTP 200 for `/`, `/journal/`, `/journal/pantry-organization-system/`, `/studio/`, `/the-edit/` and `/kitchen/`; page titles and H1s rendered, preview `noindex, nofollow` was present, canonicals pointed to the intended production host, and no page errors were reported.
+- The build-time Supabase diagnostic passed: URL present and valid; public key present and recognized. No secret key value is logged.
+- Latest build generated 24 static pages, including the homepage, Journal, Kitchen category, Article 2, Article 3, Article 4 and Product Studio routes.
+- The Pages build now ignores the incomplete Wrangler Pages configuration and uses the dashboard's deployment configuration; the separate redirect Worker config is unchanged.
+- Browser smoke test on the successful `a3b60e3b` preview returned HTTP 200 for `/`, `/journal/`, `/journal/pantry-organization-system/`, `/studio/`, `/the-edit/` and `/kitchen/`; page titles and H1s rendered and the browser reported no JavaScript/page errors. This is a route smoke test, not visual/mobile or authenticated workflow acceptance.
+- Added and applied `publish_product_with_offer(jsonb,jsonb,jsonb)`, a `SECURITY INVOKER` database function that writes retailer, product and regional offer atomically. A follow-up migration now records owner-submitted listings as `editorial_submission`, leaves `last_verified_at` and offer `verified_at` NULL until a real check occurs, and exposes that distinction on public product cards. The first draft referenced the old `public.is_editor()` helper; a live authenticated transaction test exposed that the deployed RLS helper is `private.is_editor()`. Added and applied corrective migration `202611210002_fix_atomic_publish_auth_helper.sql` to use the actual helper.
+- Re-ran an authenticated transaction using the owner UUID: the RPC returned a product ID successfully; the test transaction was rolled back; follow-up queries confirmed zero test product/retailer rows remain. Privilege checks confirm `anon` cannot execute the RPC and `authenticated` can. This validates the authorization helper, core insert path and rollback hygiene at SQL level.
+- The Product Desk frontend calls this RPC instead of separate product/offer inserts. A follow-up migration adds `editorial_submission` as a distinct evidence type and leaves product `last_verified_at` and offer `verified_at` NULL until a genuine verification is recorded. Stock availability remains `unknown` by default. Public product cards label owner-submitted listings as not independently verified; the Product Desk explicitly distinguishes publishing from testing or stock verification. A fresh owner-role SQL transaction returned the new evidence state and was rolled back cleanly.
+- Latest preview: `https://365ad865.trove-and-tier.pages.dev`, commit `254a87fb748a0c01b03c1cdaf2214960b13d9dc7`. Cloudflare reports queued, initialize, clone, build and deploy all successful. The build generated 24 pages. Browser smoke test on this exact deployment returned HTTP 200 for `/`, `/journal/`, `/journal/pantry-organization-system/`, `/studio/`, `/the-edit/` and `/kitchen/`; titles/H1s rendered, preview `noindex, nofollow` was present, canonical URLs pointed to the intended production host, and no page errors were reported.
+- A preview build initially failed because npm attempted to fetch the nonexistent `rollup@4.68.8` tarball. `package.json` now pins the transitive Rollup dependency to the published `4.68.7`; the subsequent preview dependency install and build succeeded. This is a targeted resolution workaround, not a substitute for a committed lockfile or a full dependency audit.
+- Latest deployment logs contain no `permission denied for function is_editor` or `Published article snapshot unavailable` messages. The public read-policy issue is therefore cleared at build/smoke-test level; browser behavior still needs validation.
+- Cloudflare deployment preview URL: `https://b49e9ccd.trove-and-tier.pages.dev`. Preview alias: `https://feat-phase-1-editorial-site.trove-and-tier.pages.dev`.
+- Supabase project ref: `lavvvwhxshfwambxklko`; region `eu-west-1`.
+- Supabase owner allowlist has one owner record. With the owner's JWT subject simulated under the authenticated role, `private.is_editor()` returned true and owner access remained intact after the public-policy change.
+- Under the anon role, read-policy smoke checks completed without permission errors. Nine active categories were visible; there are currently zero published CMS articles, zero published products and zero active offers in the database.
+- Product image bucket and editor storage policies were previously verified; a transaction test inserted temporary commerce records and rolled them back.
+- GitHub Actions remain manual-only; no Actions workflow was run for these preview deployments.
+
+## Article 9 — revised manuscript saved and editorially approved
+- Full revised manuscript saved at `src/content/articles/no-drill-storage.md` on `feat/phase-1-editorial-site`. Commit: `e09ae67b401069df377229d8edd32099b67fc8e0`.
+- Formal review updated at `docs/reviews/ARTICLE-09-NO-DRILL-STORAGE-REVIEW.md`. Revised score: **9.0/10**; editorially approved at manuscript level. The six-factor decision framework, method-specific failure modes, comparison table, three scenarios, England-bounded tenancy guidance and FAQs are present.
+- Article 9 is not registered in the public article list, not linked from published pages and not deployed as a public article. Owner authorization and preview, metadata, image-rights and route checks remain release gates.
+
+## Article 5 — corrected manuscript saved and editorially approved
+- Full corrected manuscript saved at `src/content/articles/small-bathroom-storage.md` on `feat/phase-1-editorial-site`. Commit: `2eb1313848697bec1cc9b297366633dc220e51d2`.
+- Corrections applied: more precise cupboard moisture wording; removed unsupported claim about the largest audit group; qualified US NEC GFCI requirement by local adoption; clarified UK/US electrician sentence; fixed Article 2 canonical internal link; updated pending internal-link paths; and preserved the practical over-toilet guidance. Image-package corrections remain to be reflected when imagery is produced.
+- Editorial decision: **approved at manuscript level; owner may authorize publication**. The manuscript is not registered in the public article list or deployed as a public article.
+
+
+## Newly identified release blocker
+- The earlier dependency audit reported **5 npm audit vulnerabilities: 1 low, 3 high and 1 critical**. The affected packages and fix paths have not yet been identified. The latest Cloudflare build logs did not expose a complete npm audit report, so the findings must be treated as unresolved. No `package-lock.json` is currently committed, so dependency resolution is not fully reproducible. Obtain a complete audit report, create and commit a reviewed lockfile, and apply compatible, targeted dependency updates before production release. Do not run `npm audit fix --force` blindly.
+
+## Remaining before launch
+- Inspect and remediate the npm audit findings; rerun the production build after the dependency changes.
+- Browser verification of homepage, Journal, Kitchen category, Article 2, Article 4, SEO title/description/canonical URLs, preview noindex behavior, internal links, table responsiveness and mobile/desktop layouts. Automated web retrieval could not inspect the Cloudflare preview host in this session; human visual confirmation is still required.
+- End-to-end owner login and password sign-in from the website. The owner must enter the password privately; it should never be shared in chat.
+- End-to-end product image upload, publish, pause/resume, archive/restore and public product display.
+- Confirm the category-page nested Supabase relation filter works in the browser.
+- Exercise the new atomic publish RPC through the authenticated browser flow, including successful publish, invalid retailer/domain, duplicate retailer, offer constraint failure and image-upload cleanup. Do not publish real catalogue entries until the full workflow passes.
+- Complete visual/mobile browser review, metadata/canonical checks, preview noindex behavior, internal links, table responsiveness and the nested Supabase category relation filter.
+- Confirm the final production build and deploy to the production branch only after preview acceptance.
+- Post-deployment verification on `https://trove-and-tier.pages.dev/`.
+
+## Deliberately deferred
+Advanced analytics, click/conversion dashboards, automated publishing, full editorial CMS, affiliate redirect Worker, email capture and paid marketing automation. These are not prerequisites for the first carefully verified launch.
+
+## Release rule
+Do not announce the site as live or send promotional traffic to new article routes until the npm audit findings are addressed, the latest preview build and browser checks have been verified, and production deployment is confirmed. Never describe branch-only work as published.
+
+## Latest editorial-site integration — 21 November 2026
+- Articles 5 and 9 are now registered in `src/data/site.ts` and rendered from their full Markdown manuscripts by `src/pages/journal/[slug].astro`.
+- New preview routes: `/journal/small-bathroom-storage/` and `/journal/no-drill-storage/`.
+- Both articles appear in the Journal index and their corresponding Bathroom and Small spaces category pages.
+- Article 5 production package saved at `docs/editorial/ARTICLE-05-PUBLICATION-PACKAGE.md`, including fresh visual-generation prompts, alt text, Pinterest copy, social captions and release checklist.
+- Cloudflare Pages preview deployment for commit `711b7961c3c7fd76e883d6d3e1d8bd1ebba13847`: `https://26bbc7ca.trove-and-tier.pages.dev/`. Build completed successfully; Cloudflare generated 26 static pages, including both new article routes.
+- The preview canonical origin now falls back to `https://troveandtier.com`. Preview builds use Cloudflare's injected `CF_PAGES_BRANCH` value to emit `noindex, nofollow` unless the deployment branch is `main`. The branch variable is documented by Cloudflare as available during Pages builds: https://developers.cloudflare.com/pages/configuration/build-configuration/
+- **Runtime verification still outstanding:** the browser-rendering service rate-limited further checks after the initial browser test. Earlier preview browser checks confirmed HTTP 200 for the new article and category routes and verified full manuscript rendering, but the final canonical/noindex correction still needs a fresh browser metadata check.
+- No changes were made to `main`; no production deployment or public launch was performed. Article 5 and Article 9 remain preview-integrated only.
+
+- Article 5's safety and technical statements now link inline to the primary guidance: US EPA moisture guidance, Health Canada household-chemical guidance, RoSPA poisoning-prevention guidance, Electrical Safety First bathroom guidance, NFPA 70, and Ontario ESA guidance. This update is in commit `dcf1f6c49289d93c1a0519362a6996bd6363ecb1`.
+- The Article 5 source-link update is on the development branch and will receive its own Cloudflare preview deployment. Browser-rendering verification remains rate-limited; do not treat the final robots metadata check as passed until it is re-run.
+
+## Further work — 21 November 2026
+- Article 1's full revised manuscript is now rendered at the existing canonical route `/journal/small-kitchen-planning/`; the Journal entry has been refreshed and the Kitchen category remains its index destination.
+- Article 5 and Article 9 are registered in the Journal and their Bathroom and Small Spaces categories. Their full manuscripts are rendered from the source files, not the short fallback summaries.
+- Article 5 primary-source links were added for EPA, Health Canada, RoSPA, Electrical Safety First, NFPA and Ontario ESA. Its companion production package is saved at `docs/editorial/ARTICLE-05-PUBLICATION-PACKAGE.md`.
+- Article 1's companion visual/Pinterest package is saved at `docs/editorial/ARTICLE-01-PUBLICATION-PACKAGE.md`; the manuscript links its kitchen-fire and household-chemical safety guidance to NFPA and Indiana DEM.
+- Added `src/content.config.ts` with an explicit Astro glob collection for the Markdown manuscripts. The preview build on the preceding commit completed successfully and the Astro implicit-collection deprecation warning disappeared.
+- Removed the incomplete root `wrangler.jsonc`, which was being detected by Pages but lacked `pages_build_output_dir` and caused a configuration warning. The separate `wrangler.worker.jsonc` remains dedicated to the future affiliate redirect Worker; Pages continues using its existing dashboard build configuration. This does not deploy the Worker.
+- Latest completed preview before the config cleanup: `https://f3bb989c.trove-and-tier.pages.dev/`, commit `c19b800f5355ec11d1202c0a0ca36b0564cd748f`; Cloudflare reports build and deploy successful, 26 static pages generated. Routes include Article 1, Article 2, Article 4, Article 5 and Article 9.
+- A newer preview for commit `5589188d957c418df8dda329ae2b6cc6373f924d` is in progress at `https://fc1badb5.trove-and-tier.pages.dev/`; its final build/deploy result must be checked before calling the config cleanup verified.
+- Cloudflare Browser Rendering returned HTTP 429 and explicitly requested a long wait. Do not retry during the provider's stated cooldown. The final canonical/robots browser check remains pending; no substitute browser pass is claimed.
+- No changes to `main`, no production deploy, no product listings, and no affiliate redirect Worker deployment.
+
+## 21 November — homepage, regional offers and SEO release controls
+- Homepage editorial cards now draw from the centralized `fullManuscriptSlugs` allowlist. The broken image/title link mismatch was removed; the homepage promotes Articles 1, 2, 4, 5 and 9. The third “Solve a space problem” card now points to the full Article 5 instead of the incomplete Closet fallback.
+- The homepage no longer pushes visitors into an empty product catalogue. The Trove Edit section explains the selection standard and links to “How we choose” until real product selections exist.
+- The US/UK/CA region selector now dispatches a market-change event. Room pages and The Trove Edit filter offers to the selected market and show a transparent empty state when no active regional offer exists. Storage-disabled browsers still receive the change event.
+- Editorial Markdown links now reject insecure external `http://` destinations; relative same-site paths and HTTPS source links remain supported.
+- Added Open Graph and Twitter summary metadata to the shared layout; editorial pages identify themselves as `article`. Search and Product Desk pages are noindex.
+- Added generated `/robots.txt` and `/sitemap.xml`. Preview robots disallow crawling; production robots allow the public site while disallowing `/studio/` and `/search/`. The sitemap includes complete manuscripts and published CMS articles, active product/category destinations only.
+- Centralized the complete-manuscript allowlist. Article 3's existing short fallback route is deliberately noindex and excluded from the sitemap until its exact controlling manuscript is recovered and integrated. Empty room categories and The Trove Edit remain noindex until they have complete guides or live regional product selections.
+- Public article/product Supabase snapshots are now memoized per static build. The last full build completed in 23 seconds (including dependency installation) and Astro generated 26 pages; `/robots.txt` and `/sitemap.xml` were both generated. The previous un-cached build took about 54 seconds; no GitHub Actions workflow was run.
+- Latest preview deployment: `https://58b51921.trove-and-tier.pages.dev/`, commit `f513d1685718a50dbc54ae798b4190920a12b767`; Cloudflare build and deployment stages succeeded.
+- Remaining browser limitation: Cloudflare Browser Rendering remains rate-limited and the preview host is not retrievable through the available web fetch. The generated robots/sitemap routes, canonical URLs, noindex tags, regional-change behavior and responsive appearance still require browser-level verification when access is restored.
+- Dependency release gate remains open: `package-lock.json` is still not committed; obtain the complete npm audit report and review the deprecated `tsconfck@3.1.6` dependency before updating packages. Do not use `npm audit fix --force`.
+- Production is untouched. PR #1 remains a draft; no merge, production deployment, products, affiliate redirects or social posts were published.
+
+
+## 21 November — Product Desk failure handling and security inspection
+
+- Product Desk now reports product-list/count query failures explicitly instead of silently presenting an empty-looking recent-products area. Commit: `29c917abd59f3d2532a74025286413266f716bc2`.
+- Read-only Supabase inspection confirmed editor-only write policies for products, offers, retailers, categories and admin roster; public reads remain filtered to published products and active offers.
+- The product publishing RPC is SECURITY INVOKER, explicitly checks `private.is_editor()`, validates the market and HTTPS URLs, checks the canonical product host against the retailer host, and creates retailer/product/offer records atomically.
+- Product image storage is public-read by design; uploads, updates and deletes require editor authorization. The bucket enforces a 5 MiB limit and JPEG/PNG/WebP/AVIF MIME allowlist.
+- Review details and uncompleted browser checks are recorded in `docs/reviews/PRODUCT-DESK-SECURITY-AND-FAILURE-REVIEW.md`.
+- A concise `npm run audit:report` utility remains available for future dependency checks. The one-time diagnostic is complete and the standard Cloudflare Pages build command has been restored. The audit-only build is triggered after the Cloudflare project build command is switched temporarily; no GitHub Actions workflow is involved.
+- Browser sign-in, upload, publish, pause/resume, archive/restore, and mobile visual tests remain unverified. No products were created or changed.
+
+
+## 21 November — dependency security remediation
+
+- Replaced vulnerable Astro 5.18.2 with the official Astro 7.4.13 release and pinned `@astrojs/check` to 0.9.12. The Astro 7 static build succeeded on Cloudflare's Node 22.23.4 image.
+- Generated and committed `package-lock.json` for the final dependency tree (lockfile v3; 404 package entries; 202,581 bytes). SHA-256: `b79b64646a18ab16e631706533efe302a9a47ddc7d2936ea66ca06cf7c071282`. It includes `@types/node@22.20.5` and `undici-types@6.21.0`.
+- Re-ran `npm audit --json` against the upgraded, lockfile-backed dependency tree: **0 info, 0 low, 0 moderate, 0 high, 0 critical; total 0**.
+- The upgrade build generated 25 static pages successfully. The duplicate `/the-edit` category path was removed from the dynamic category route because the dedicated `/the-edit` page owns that URL.
+- Final preview verification passed: `astro check` reported **0 errors, 0 warnings, 0 hints across 29 files**; the static build generated 25 pages; the route-priority warning was eliminated. The standard Cloudflare Pages build command is restored to `npm run build`. No GitHub Actions workflow was used.
+- Browser sign-in, Product Desk upload/publish lifecycle, and mobile visual review remain outstanding. No production deployment or product publication occurred.

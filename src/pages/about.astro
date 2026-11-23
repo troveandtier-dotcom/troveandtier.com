@@ -1,0 +1,30 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Header from '../components/Header.astro';
+---
+<BaseLayout title="About Trove & Tier — Thoughtful finds. Better living." description="Meet Trove & Tier: an editorial point of view on considered interiors, exceptional objects, home experiences and better everyday living.">
+<Header/>
+<main class="wrap">
+  <header class="intro"><p class="eyebrow">The point of view</p><h1>A home is more<br/>than a collection<br/><em>of rooms.</em></h1><p class="lead">It is where design meets daily life. Where the things we choose, the spaces we shape and the rituals we keep become part of how we live.</p></header>
+  <section class="copy">
+    <p class="eyebrow">About Trove &amp; Tier</p>
+    <p class="statement">Trove &amp; Tier is a luxury-inclusive home and living publication exploring thoughtful finds, considered interiors and experiences that make everyday life better.</p>
+    <p>Our world moves from attainable improvements to extraordinary design. We are interested in the practical and the exceptional: a better-planned kitchen, a beautifully made chair, a room shaped by light, a considered home cinema, a memorable address.</p>
+    <h2>Five ways of looking at home.</h2>
+    <p><strong>The Residence</strong> explores interiors, architecture, furniture, materials and transformations.</p>
+    <p><strong>The Experience</strong> considers home cinema, audio, lighting and technology that belongs naturally in a living space.</p>
+    <p><strong>The Objects</strong> looks closely at furniture, tableware, art, lighting and design worth living with.</p>
+    <p><strong>The Ritual</strong> finds meaning in coffee, dining, reading, rest and the small routines of home.</p>
+    <p><strong>The Address</strong> visits exceptional homes, architecture, hospitality and places worth remembering.</p>
+    <h2>Useful, beautiful and honestly considered.</h2>
+    <p>We do not believe that better living means buying more. We look at fit, function, materials, care, context and trade-offs. Practical guides and room-by-room advice remain part of our work; they sit alongside a broader editorial view of design and home life.</p>
+    <p>When we discuss products, prices, availability or services, we aim to distinguish verified information from editorial interpretation. We disclose commercial relationships and do not present a paid placement as an independent recommendation.</p>
+    <h2>Thoughtful finds. Better living.</h2>
+    <p>That is our promise — and the standard we want every story, selection and partnership to meet.</p>
+  </section>
+</main>
+<footer><a href="/">TROVE &amp; TIER</a><span>Thoughtful finds. Better living.</span></footer>
+</BaseLayout>
+<style>
+.wrap{max-width:1160px;margin:auto;padding:0 5%}.intro{padding:85px 0 78px;border-bottom:1px solid var(--line)}.eyebrow{font-size:9px;letter-spacing:.18em;color:var(--color-deep-sage);text-transform:uppercase}h1{font:clamp(65px,9vw,112px)/.88 var(--font-display);letter-spacing:-.04em;margin:28px 0 30px}h1 em{color:var(--color-deep-sage);font-weight:400}.lead{font:clamp(23px,3vw,31px)/1.45 var(--font-display);max-width:700px;color:#5f6158}.copy{max-width:720px;margin:0 0 105px auto;padding-top:65px;font-size:14px;line-height:1.95;color:#5f6158}.statement{font:30px/1.4 var(--font-display);color:var(--color-charcoal)}.copy h2{font:40px/1.1 var(--font-display);color:var(--color-charcoal);margin:50px 0 18px}.copy strong{color:var(--color-charcoal)}footer{background:var(--color-charcoal);color:var(--color-ivory);padding:25px 5%;display:flex;justify-content:space-between;font-size:10px;letter-spacing:.15em}footer a{color:inherit;text-decoration:none}@media(max-width:650px){.intro{padding:60px 0}.copy{padding-top:45px;margin-bottom:65px}.copy h2{font-size:34px}footer{flex-direction:column;gap:10px}}
+</style>
